@@ -1,0 +1,123 @@
+import { Router } from "express";
+import passport from "passport";
+import { env } from "../config/env";
+import {
+  configurePassport,
+  createSession,
+  setAuthCookie,
+  getMe,
+  logout,
+  testLogin,
+  isGoogleAuthConfigured,
+} from "../services/authService";
+import { asyncHandler, requireAuth, type AuthRequest } from "../middleware/auth";
+import { success, failure } from "../utils/errors";
+import { ERROR_CODES } from "@aura/shared";
+import { User } from "../models/User";
+import { OAuthAccount } from "../models/OAuthAccount";
+import { updateProfileSchema } from "@aura/shared";
+import { validateBody } from "../middleware/validate";
+
+configurePassport();
+
+export const authRouter = Router();
+
+authRouter.get("/google", (req, res, next) => {
+  if (!isGoogleAuthConfigured) {
+    return res
+      .status(503)
+      .json(
+        failure(
+          "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.",
+          ERROR_CODES.BROKER_ERROR
+        )
+      );
+  }
+  return passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+    state: String(req.query.state || "aura"),
+  })(req, res, next);
+});
+
+authRouter.get("/google/callback", (req, res, next) => {
+  const rawState = req.query.state as string | undefined;
+  let frontendBase = env.FRONTEND_URL;
+  if (rawState && (rawState.startsWith("http://") || rawState.startsWith("https://"))) {
+    try {
+      const parsedUrl = new URL(rawState);
+      frontendBase = parsedUrl.origin;
+    } catch {
+      // fallback to env.FRONTEND_URL
+    }
+  }
+
+  if (!isGoogleAuthConfigured) {
+    return res.redirect(`${frontendBase}/login?error=oauth_not_configured`);
+  }
+
+  passport.authenticate(
+    "google",
+    { session: false, failureRedirect: `${frontendBase}/login?error=oauth_failed` },
+    async (err: Error | null, user: InstanceType<typeof User> | false) => {
+      try {
+        if (err || !user) {
+          return res.redirect(`${frontendBase}/login?error=oauth_failed`);
+        }
+        const token = await createSession(user.id, req);
+        setAuthCookie(res, token);
+        return res.redirect(`${frontendBase}/app?auth=success`);
+      } catch {
+        return res.redirect(`${frontendBase}/login?error=oauth_failed`);
+      }
+    }
+  )(req, res, next);
+});
+
+authRouter.get("/me", requireAuth, asyncHandler(getMe));
+authRouter.post("/logout", requireAuth, asyncHandler(logout));
+authRouter.post("/test-login", asyncHandler(testLogin));
+
+authRouter.get("/providers", (_req, res) => {
+  res.json(
+    success({
+      google: isGoogleAuthConfigured,
+      emailPassword: false,
+      testAuth: env.ENABLE_TEST_AUTH && env.NODE_ENV !== "production",
+    })
+  );
+});
+
+authRouter.patch(
+  "/profile",
+  requireAuth,
+  validateBody(updateProfileSchema),
+  asyncHandler(async (req: AuthRequest, res) => {
+    const user = await User.findById(req.user!.id);
+    if (!user) {
+      return res.status(404).json(failure("Not found", ERROR_CODES.NOT_FOUND));
+    }
+    if (req.body.name) user.name = req.body.name;
+    if (req.body.phone !== undefined) user.phone = req.body.phone ?? undefined;
+    await user.save();
+    const providers = await OAuthAccount.find({ userId: user._id });
+    return res.json(
+      success({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        phone: user.phone,
+        role: user.role,
+        providers: providers.map((p) => p.provider),
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      })
+    );
+  })
+);
+
+// Fix passport user typing for callback — use custom authenticate handler
+authRouter.get("/google/status", (_req, res) => {
+  res.json(success({ configured: isGoogleAuthConfigured }));
+});

@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: aura-backend
+    runtime: node
+    buildCommand: npm install && npm run build:backend
+    startCommand: npm run start:backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        value: mongodb+srv://sahilvvit_db_user:LfMhDxRHUNkMHxLZ@cluster0.p8ovrze.mongodb.net/?appName=Cluster0
+      - key: JWT_SECRET
+        value: dev-only-change-me-secret-is-non
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_COOKIE_NAME
+        value: aura_token
+      - key: GOOGLE_CLIENT_ID
+        value: 37581356529-08v3ra4l6h0maoha4dne2bee5dho9ig4.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_SECRET
+        value: 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
+      - key: FRONTEND_URL
+        value: https://aura-trading-flame.vercel.app
+      - key: CORS_ORIGIN
+        value: https://aura-trading-flame.vercel.app
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAME_SITE
+        value: none
+      - key: MARKET_DATA_PROVIDER
+        value: angelone
+      - key: BROKER_PROVIDER
+        value: angelone
+      - key: ANGEL_ONE_CLIENT_CODE
+        value: M59370775
+      - key: ANGEL_ONE_PASSWORD
+        value: "7673"
+      - key: ANGEL_ONE_API_KEY
+        value: JEhSAPpb
+      - key: ANGEL_ONE_TOTP_SECRET
+        value: WI2RYWLG4B3JD7SOD4NGSGYXXY
+      - key: ENABLE_TEST_AUTH
+        value: "true"
+      - key: TEST_AUTH_SECRET
+        value: dev-test-auth-secret

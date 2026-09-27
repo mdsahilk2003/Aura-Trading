@@ -1,0 +1,22 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "**.googleusercontent.com" },
+    ],
+  },
+  async rewrites() {
+    const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    return [
+      {
+        source: "/backend/:path*",
+        destination: `${api}/:path*`,
+      },
+    ];
+  },
+};
+
+export default nextConfig;
