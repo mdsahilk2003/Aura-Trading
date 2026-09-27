@@ -33,22 +33,33 @@ authRouter.get("/google", (req, res, next) => {
         )
       );
   }
+
+  const host = req.get("x-forwarded-host") || req.get("host") || "localhost:3000";
+  const protocol = req.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+  const callbackURL = `${protocol}://${host}/api/auth/google/callback`;
+  const returnTo = String(req.query.state || `${protocol}://${host}`);
+
   return passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
-    state: String(req.query.state || "aura"),
-  })(req, res, next);
+    callbackURL,
+    state: returnTo,
+  } as any)(req, res, next);
 });
 
 authRouter.get("/google/callback", (req, res, next) => {
+  const host = req.get("x-forwarded-host") || req.get("host") || "localhost:3000";
+  const protocol = req.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+  const callbackURL = `${protocol}://${host}/api/auth/google/callback`;
+
   const rawState = req.query.state as string | undefined;
-  let frontendBase = env.FRONTEND_URL;
+  let frontendBase = `${protocol}://${host}`;
   if (rawState && (rawState.startsWith("http://") || rawState.startsWith("https://"))) {
     try {
       const parsedUrl = new URL(rawState);
       frontendBase = parsedUrl.origin;
     } catch {
-      // fallback to env.FRONTEND_URL
+      // fallback
     }
   }
 
@@ -58,7 +69,11 @@ authRouter.get("/google/callback", (req, res, next) => {
 
   passport.authenticate(
     "google",
-    { session: false, failureRedirect: `${frontendBase}/login?error=oauth_failed` },
+    {
+      session: false,
+      callbackURL,
+      failureRedirect: `${frontendBase}/login?error=oauth_failed`,
+    } as any,
     async (err: Error | null, user: InstanceType<typeof User> | false) => {
       try {
         if (err || !user) {
