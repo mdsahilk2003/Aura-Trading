@@ -59,7 +59,7 @@ export function createApp() {
     })
   );
 
-  app.get("/health", (_req, res) => {
+  app.get(["/health", "/api/health"], (_req, res) => {
     const dbStateMap: Record<number, string> = {
       0: "disconnected",
       1: "connected",
