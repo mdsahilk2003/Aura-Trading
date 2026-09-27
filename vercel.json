@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build -w shared && npm run build -w frontend",
+  "buildCommand": "npm run build -w shared && npm run build -w backend && npm run build -w frontend",
   "outputDirectory": "frontend/.next",
   "framework": "nextjs"
 }

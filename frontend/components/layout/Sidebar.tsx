@@ -51,7 +51,7 @@ export function Sidebar() {
               const isActive =
                 item.href === "/app"
                   ? pathname === "/app"
-                  : pathname.startsWith(item.href);
+                  : Boolean(pathname?.startsWith(item.href));
 
               return (
                 <Link

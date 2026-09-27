@@ -18,8 +18,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const nextUrl = searchParams.get("next") || "/app";
-  const oauthErr = searchParams.get("error");
+  const nextUrl = searchParams?.get("next") || "/app";
+  const oauthErr = searchParams?.get("error");
 
   const handleTestLogin = async () => {
     setLoading(true);
