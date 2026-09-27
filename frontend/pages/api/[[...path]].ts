@@ -20,8 +20,14 @@ export default async function handler(
     try {
       await connectDatabase();
       isConnected = true;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Vercel Serverless MongoDB Connection Error:", err);
+      const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:3000";
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const redirectBase = `${protocol}://${host}`;
+      if (req.url?.includes("/api/auth/google/callback")) {
+        return res.redirect(`${redirectBase}/login?error=oauth_failed&reason=${encodeURIComponent(err?.message || "MongoDB connection failed")}`);
+      }
     }
   }
 

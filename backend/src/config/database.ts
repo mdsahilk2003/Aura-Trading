@@ -6,6 +6,7 @@ export async function connectDatabase(uri = env.MONGODB_URI): Promise<typeof mon
     return mongoose;
   }
   mongoose.set("strictQuery", true);
+  mongoose.set("bufferCommands", false);
   try {
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 10000 });
   } catch (err) {
