@@ -13,6 +13,7 @@ import { AuditLog } from "../models/AuditLog";
 import { hashToken, signToken } from "../utils/jwt";
 import { success, failure, AppError } from "../utils/errors";
 import { ERROR_CODES } from "@aura/shared";
+import { connectDatabase } from "../config/database";
 import type { AuthRequest } from "../middleware/auth";
 
 export function configurePassport() {
@@ -27,6 +28,7 @@ export function configurePassport() {
       },
       async (_accessToken, _refreshToken, profile, done) => {
         try {
+          await connectDatabase();
           const email = profile.emails?.[0]?.value;
           if (!email) {
             return done(new AppError("Google account has no email", 400));
@@ -183,6 +185,7 @@ export async function testLogin(req: Request, res: Response) {
   const name = (req.body?.name as string) || "Aura Trader";
   const role = req.body?.role === "admin" ? "admin" : "user";
 
+  await connectDatabase();
   let user = await User.findOne({ email });
   if (!user) {
     user = await User.create({ name, email, role, avatar: undefined });
