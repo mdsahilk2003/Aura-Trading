@@ -77,13 +77,17 @@ authRouter.get("/google/callback", (req, res, next) => {
     async (err: Error | null, user: InstanceType<typeof User> | false) => {
       try {
         if (err || !user) {
-          return res.redirect(`${frontendBase}/login?error=oauth_failed`);
+          console.error("Google Auth Callback Error:", err);
+          const reason = encodeURIComponent(err?.message || "user_null");
+          return res.redirect(`${frontendBase}/login?error=oauth_failed&reason=${reason}`);
         }
         const token = await createSession(user.id, req);
         setAuthCookie(res, token);
         return res.redirect(`${frontendBase}/app?auth=success`);
-      } catch {
-        return res.redirect(`${frontendBase}/login?error=oauth_failed`);
+      } catch (e: any) {
+        console.error("Google Auth Session Error:", e);
+        const reason = encodeURIComponent(e?.message || "session_error");
+        return res.redirect(`${frontendBase}/login?error=oauth_failed&reason=${reason}`);
       }
     }
   )(req, res, next);

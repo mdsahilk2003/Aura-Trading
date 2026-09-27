@@ -20,6 +20,7 @@ function LoginForm() {
 
   const nextUrl = searchParams?.get("next") || "/app";
   const oauthErr = searchParams?.get("error");
+  const oauthReason = searchParams?.get("reason");
 
   const handleTestLogin = async () => {
     setLoading(true);
@@ -65,6 +66,8 @@ function LoginForm() {
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-center text-xs text-amber-300">
           {oauthErr === "oauth_not_configured"
             ? "Google OAuth server keys not configured yet. Use Demo Sign In below."
+            : oauthReason
+            ? `Google Sign In error: ${oauthReason}`
             : "Google OAuth sign in failed. Please try again or use Demo Sign In."}
         </div>
       )}
