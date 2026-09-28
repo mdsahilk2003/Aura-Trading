@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createApp } from "@aura/backend/src/app";
 import { connectDatabase } from "@aura/backend/src/config/database";
+import { seedInstruments } from "@aura/backend/src/utils/seed";
 
 let app: any = null;
 let isConnected = false;
@@ -19,6 +20,7 @@ export default async function handler(
   if (!isConnected) {
     try {
       await connectDatabase();
+      await seedInstruments();
       isConnected = true;
     } catch (err: any) {
       console.error("Vercel Serverless MongoDB Connection Error:", err);

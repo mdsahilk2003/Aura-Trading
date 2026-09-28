@@ -57,9 +57,17 @@ export class TradingService {
     options?: { isBot?: boolean }
   ) {
     const symbol = input.symbol.toUpperCase();
-    const instrument = await Instrument.findOne({ symbol, isActive: true });
+    let instrument = await Instrument.findOne({ symbol, isActive: true });
     if (!instrument) {
-      throw new AppError("Instrument not found", 404, ERROR_CODES.NOT_FOUND);
+      instrument = await Instrument.create({
+        symbol,
+        name: `${symbol} Ltd`,
+        exchange: "NSE",
+        segment: "EQ",
+        lotSize: 1,
+        tickSize: 0.05,
+        isActive: true,
+      });
     }
 
     const quote = await this.marketData.getQuote(symbol);
@@ -71,7 +79,9 @@ export class TradingService {
 
     if (input.side === "SELL") {
       const holding = await Holding.findOne({ userId, symbol });
-      if (!holding || holding.quantity < input.quantity) {
+      const position = await Position.findOne({ userId, symbol });
+      const availableQty = holding?.quantity || position?.quantity || 0;
+      if (availableQty < input.quantity) {
         throw new AppError(
           "Insufficient holdings to sell",
           422,

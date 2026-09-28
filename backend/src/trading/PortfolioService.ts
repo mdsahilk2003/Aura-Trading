@@ -77,8 +77,19 @@ export class PortfolioService {
   }
 
   async getHoldings(userId: string): Promise<HoldingDto[]> {
-    const holdings = await Holding.find({ userId, quantity: { $gt: 0 } });
-    if (!holdings.length) return [];
+    let holdings = await Holding.find({ userId, quantity: { $gt: 0 } });
+    if (!holdings.length) {
+      const positions = await Position.find({ userId, quantity: { $gt: 0 } });
+      if (!positions.length) return [];
+      holdings = positions.map((p) => ({
+        _id: p._id,
+        userId: p.userId,
+        instrumentId: p.instrumentId,
+        symbol: p.symbol,
+        quantity: p.quantity,
+        averagePrice: p.averagePrice,
+      } as any));
+    }
     const quotes = await this.marketData.getQuotes(holdings.map((h) => h.symbol));
     const quoteMap = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
 

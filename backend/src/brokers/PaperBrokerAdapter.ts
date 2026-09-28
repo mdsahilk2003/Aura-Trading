@@ -93,12 +93,21 @@ export class PaperBrokerAdapter implements BrokerAdapter {
   }
 
   async placeOrder(userId: string, order: PlaceOrderRequest): Promise<OrderDto> {
-    const instrument = await Instrument.findOne({
-      symbol: order.symbol.toUpperCase(),
+    const symbol = order.symbol.toUpperCase();
+    let instrument = await Instrument.findOne({
+      symbol,
       isActive: true,
     });
     if (!instrument) {
-      throw new AppError("Instrument not found", 404, ERROR_CODES.NOT_FOUND);
+      instrument = await Instrument.create({
+        symbol,
+        name: `${symbol} Ltd`,
+        exchange: "NSE",
+        segment: "EQ",
+        lotSize: 1,
+        tickSize: 0.05,
+        isActive: true,
+      });
     }
 
     const quote = liveQuoteFromSeries(order.symbol);
