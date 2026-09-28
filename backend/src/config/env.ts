@@ -63,7 +63,7 @@ if (!parsed.success) {
 const fallback = {
   NODE_ENV: (process.env.NODE_ENV as "development" | "test" | "production") || "development",
   PORT: Number(process.env.PORT || 4000),
-  MONGODB_URI: process.env.MONGODB_URI || "mongodb+srv://sahilvvit_db_user:LfMhDxRHUNkMHxLZ@cluster0.p8ovrze.mongodb.net/?appName=Cluster0",
+  MONGODB_URI: process.env.MONGODB_URI || "mongodb+srv://sahilvvit_db_user:LfMhDxRHUNkMHxLZ@cluster0.p8ovrze.mongodb.net/aura_trading?retryWrites=true&w=majority",
   JWT_SECRET: process.env.JWT_SECRET || "dev-only-change-me-secret-is-non",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
   JWT_COOKIE_NAME: process.env.JWT_COOKIE_NAME || "aura_token",

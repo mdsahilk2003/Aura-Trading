@@ -40,7 +40,8 @@ export class PortfolioService {
     let currentValue = 0;
     let todaysPnl = 0;
 
-    for (const h of holdings) {
+    const activeItems = holdings.length > 0 ? holdings : positions;
+    for (const h of activeItems) {
       const q = quoteMap.get(h.symbol.toUpperCase()) || liveQuoteFromSeries(h.symbol);
       const price = q?.price && q.price > 0 ? q.price : h.averagePrice;
       const hInvested = h.quantity * h.averagePrice;

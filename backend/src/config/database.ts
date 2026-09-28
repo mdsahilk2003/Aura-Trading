@@ -7,15 +7,24 @@ export async function connectDatabase(uri = env.MONGODB_URI): Promise<typeof mon
   }
   mongoose.set("strictQuery", true);
   mongoose.set("bufferCommands", false);
+
+  const targetUri =
+    uri ||
+    "mongodb+srv://sahilvvit_db_user:LfMhDxRHUNkMHxLZ@cluster0.p8ovrze.mongodb.net/aura_trading?retryWrites=true&w=majority";
+
   try {
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 10000 });
+    await mongoose.connect(targetUri, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 15000,
+    });
   } catch (err) {
-    if (env.NODE_ENV !== "production") {
+    if (!process.env.VERCEL && process.env.NODE_ENV === "development") {
       console.log("Local MongoDB not reachable. Bootstrapping dev MongoMemoryServer...");
       const { MongoMemoryServer } = await import("mongodb-memory-server");
       const mongo = await MongoMemoryServer.create();
       await mongoose.connect(mongo.getUri());
     } else {
+      console.error("Failed to connect to MongoDB Atlas:", err);
       throw err;
     }
   }
