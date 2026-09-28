@@ -54,6 +54,14 @@ export class TradingService {
     options?: { isBot?: boolean }
   ) {
     const symbol = input.symbol.toUpperCase();
+    const BENCHMARK_INDICES = ["SENSEX", "NIFTY50", "NIFTY 50", "BANKNIFTY", "BANK NIFTY", "NIFTY"];
+    if (BENCHMARK_INDICES.includes(symbol) && input.side === "BUY") {
+      throw new AppError(
+        `${symbol} is a market index benchmark. Direct equity buying is disabled for indices. Please trade individual stock equities (e.g. RELIANCE, TCS, INFY).`,
+        422,
+        ERROR_CODES.VALIDATION_ERROR
+      );
+    }
     let instrument = await Instrument.findOne({ symbol, isActive: true });
     if (!instrument) {
       instrument = await Instrument.create({

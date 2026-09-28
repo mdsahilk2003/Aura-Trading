@@ -29,7 +29,7 @@ const BASE_PRICES: Record<string, number> = {
   RELIANCE: 2950,
   ONGC: 295,
   NTPC: 410,
-  POWERGRID: 335,
+  POWERGRID: 261.85,
   BPCL: 345,
   IOC: 175,
   GAIL: 220,

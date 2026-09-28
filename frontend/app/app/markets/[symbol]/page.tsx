@@ -97,6 +97,7 @@ export default function StockDetailPage() {
   // Real-Time Socket Tick Handler
   const handleTick = useCallback((tick: QuoteDto) => {
     if (tick.symbol.toUpperCase() !== symbol.toUpperCase()) return;
+    if (!tick.price || tick.price <= 0) return;
     setLiveQuote(tick);
 
     setLiveBars((prevBars) => {
@@ -105,9 +106,13 @@ export default function StockDetailPage() {
       const lastIdx = updated.length - 1;
       const lastBar = { ...updated[lastIdx] };
 
-      lastBar.close = tick.price;
-      lastBar.high = Math.max(lastBar.high, tick.price);
-      lastBar.low = Math.min(lastBar.low, tick.price);
+      const price = tick.price;
+      lastBar.close = price;
+      // Filter out extreme tick anomalies (>10% off bar open) from distorting candle high/low
+      if (Math.abs(price - lastBar.open) / lastBar.open < 0.1) {
+        lastBar.high = Math.max(lastBar.high, price);
+        lastBar.low = Math.min(lastBar.low, price);
+      }
       
       updated[lastIdx] = lastBar;
       return updated;
