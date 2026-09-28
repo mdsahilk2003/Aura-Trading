@@ -40,17 +40,8 @@ export class TradingService {
     if (!wallet) {
       wallet = await Wallet.create({
         userId: userObjId,
-        balance: DEFAULT_PAPER_FUNDS,
+        balance: 0,
         currency: "INR",
-      });
-      await WalletTransaction.create({
-        userId: userObjId,
-        walletId: wallet._id,
-        type: "CREDIT",
-        amount: DEFAULT_PAPER_FUNDS,
-        balanceAfter: DEFAULT_PAPER_FUNDS,
-        reference: "PAPER_SEED",
-        meta: { mode: "PAPER" },
       });
       await Portfolio.create({ userId: userObjId, invested: 0, snapshotValue: 0 });
     }

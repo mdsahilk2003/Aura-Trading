@@ -53,7 +53,7 @@ export function configurePassport() {
             });
             await Wallet.create({
               userId: user._id,
-              balance: DEFAULT_PAPER_FUNDS,
+              balance: 0,
               currency: "INR",
             });
             await Portfolio.create({ userId: user._id });
@@ -189,7 +189,7 @@ export async function testLogin(req: Request, res: Response) {
   let user = await User.findOne({ email });
   if (!user) {
     user = await User.create({ name, email, role, avatar: undefined });
-    await Wallet.create({ userId: user._id, balance: DEFAULT_PAPER_FUNDS });
+    await Wallet.create({ userId: user._id, balance: 0, currency: "INR" });
     await Portfolio.create({ userId: user._id });
     await Watchlist.create({
       userId: user._id,

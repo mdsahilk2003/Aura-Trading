@@ -28,7 +28,7 @@ export const CHART_TIMEFRAMES = [
   "5Y",
 ] as const;
 
-export const DEFAULT_PAPER_FUNDS = 1_000_000;
+export const DEFAULT_PAPER_FUNDS = 0;
 
 export const RISK_DEFAULTS = {
   maxPositionPercent: 25,

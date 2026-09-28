@@ -5,9 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { OrderSide, OrderType } from "@aura/shared";
 import { ordersService } from "@/services/orders";
 import { portfolioService } from "@/services/portfolio";
+import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, ArrowUpRight, ArrowDownRight, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, Wallet, CheckCircle2, AlertCircle, PlusCircle } from "lucide-react";
 
 interface OrderPanelProps {
   symbol: string;
@@ -23,10 +24,12 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
   const [price, setPrice] = useState(currentPrice);
   const [triggerPrice, setTriggerPrice] = useState(currentPrice);
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [addMoneyOpen, setAddMoneyOpen] = useState(false);
 
   const { data: portfolio } = useQuery({
     queryKey: ["portfolio"],
     queryFn: portfolioService.getPortfolio,
+    refetchInterval: 3000,
   });
 
   const effectivePrice = orderType === "MARKET" ? currentPrice : price;
@@ -50,6 +53,8 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
       });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio", "holdings"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio", "positions"] });
       queryClient.invalidateQueries({ queryKey: ["watchlist"] });
       queryClient.invalidateQueries({ queryKey: ["markets"] });
       onSuccess?.();
@@ -72,10 +77,15 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
             LTP: ₹{currentPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </p>
         </div>
-        <div className="flex items-center gap-1 text-[11px] text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-          <Wallet className="h-3.5 w-3.5 text-slate-400" />
+        <button
+          type="button"
+          onClick={() => setAddMoneyOpen(true)}
+          className="flex items-center gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold transition-colors"
+        >
+          <Wallet className="h-3.5 w-3.5 text-emerald-600" />
           <span>₹{availableFunds.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
-        </div>
+          <PlusCircle className="h-3.5 w-3.5 text-emerald-600 ml-0.5" />
+        </button>
       </div>
 
       {/* Buy / Sell Toggle Tabs */}
@@ -207,28 +217,45 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
         </div>
       )}
 
-      {/* Submit Button */}
-      <Button
-        disabled={placeOrderMutation.isPending || (side === "BUY" && estimatedValue > availableFunds)}
-        onClick={() => placeOrderMutation.mutate()}
-        className={`w-full font-bold text-xs h-11 transition-all ${
-          side === "BUY"
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-            : "bg-rose-600 hover:bg-rose-700 text-white"
-        }`}
-      >
-        {placeOrderMutation.isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          `SUBMIT ${side} ORDER`
-        )}
-      </Button>
-
-      {side === "BUY" && estimatedValue > availableFunds && (
-        <p className="text-[11px] text-rose-500 text-center font-medium">
-          Insufficient funds available (Need ₹{estimatedValue.toFixed(2)})
-        </p>
+      {/* Submit Button or Add Money Button */}
+      {side === "BUY" && estimatedValue > availableFunds ? (
+        <div className="space-y-2">
+          <Button
+            type="button"
+            onClick={() => setAddMoneyOpen(true)}
+            className="w-full font-bold text-xs h-11 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center justify-center gap-1.5"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>ADD MONEY TO BUY (Need ₹{(estimatedValue - availableFunds).toLocaleString("en-IN", { maximumFractionDigits: 2 })})</span>
+          </Button>
+          <p className="text-[11px] text-rose-500 text-center font-medium">
+            Available balance is ₹{availableFunds.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+          </p>
+        </div>
+      ) : (
+        <Button
+          disabled={placeOrderMutation.isPending}
+          onClick={() => placeOrderMutation.mutate()}
+          className={`w-full font-bold text-xs h-11 transition-all ${
+            side === "BUY"
+              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+              : "bg-rose-600 hover:bg-rose-700 text-white"
+          }`}
+        >
+          {placeOrderMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            `SUBMIT ${side} ORDER`
+          )}
+        </Button>
       )}
+
+      {/* Add Money Modal */}
+      <AddMoneyModal
+        open={addMoneyOpen}
+        onClose={() => setAddMoneyOpen(false)}
+        defaultAmount={Math.max(1000, Math.ceil(estimatedValue - availableFunds))}
+      />
     </div>
   );
 }

@@ -1,20 +1,15 @@
 import { Router } from "express";
+import { Types } from "mongoose";
 import { asyncHandler, requireAuth, type AuthRequest } from "../middleware/auth";
-import { success } from "../utils/errors";
+import { success, failure, AppError } from "../utils/errors";
+import { ERROR_CODES } from "@aura/shared";
 import { appContext } from "../config/context";
-
+import { Wallet } from "../models/Wallet";
+import { WalletTransaction } from "../models/WalletTransaction";
 import { AngelOneBrokerAdapter } from "../brokers/AngelOneBrokerAdapter";
 
 export const brokerRouter = Router();
 brokerRouter.use(requireAuth);
-
-brokerRouter.get(
-  "/profile",
-  asyncHandler(async (req: AuthRequest, res) => {
-    const data = await appContext.brokerManager.getAdapter().getProfile(req.user!.id);
-    return res.json(success(data));
-  })
-);
 
 brokerRouter.get(
   "/funds",
@@ -22,6 +17,41 @@ brokerRouter.get(
     await appContext.trading.ensureWallet(req.user!.id);
     const data = await appContext.brokerManager.getAdapter().getFunds(req.user!.id);
     return res.json(success(data));
+  })
+);
+
+brokerRouter.post(
+  "/funds/deposit",
+  asyncHandler(async (req: AuthRequest, res) => {
+    const amount = Number(req.body?.amount);
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json(failure("Deposit amount must be greater than 0", ERROR_CODES.VALIDATION_ERROR));
+    }
+
+    const userId = req.user!.id;
+    const wallet = await appContext.trading.ensureWallet(userId);
+    wallet.balance += amount;
+    await wallet.save();
+
+    const userObjId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+    await WalletTransaction.create({
+      userId: userObjId,
+      walletId: wallet._id,
+      type: "CREDIT",
+      amount,
+      balanceAfter: wallet.balance,
+      reference: `DEP-${Date.now()}`,
+      meta: { mode: "ONLINE_PAYMENT", status: "SUCCESS" },
+    });
+
+    return res.json(
+      success({
+        available: wallet.balance,
+        deposited: amount,
+        currency: wallet.currency || "INR",
+        message: `Successfully deposited ₹${amount.toLocaleString("en-IN")} to wallet`,
+      })
+    );
   })
 );
 

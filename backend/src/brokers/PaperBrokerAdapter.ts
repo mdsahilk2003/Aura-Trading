@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { v4 as uuid } from "uuid";
 import { ERROR_CODES, type PlaceOrderRequest, type ModifyOrderRequest, type OrderDto, type QuoteDto } from "@aura/shared";
 import { AppError } from "../utils/errors";
@@ -16,6 +17,14 @@ import { Instrument } from "../models/Instrument";
 export class PaperBrokerAdapter implements BrokerAdapter {
   readonly name = "PaperBrokerAdapter";
 
+  private buildUserQuery(userId: string) {
+    if (Types.ObjectId.isValid(userId)) {
+      const objId = new Types.ObjectId(userId);
+      return { $or: [{ userId }, { userId: objId }] };
+    }
+    return { userId };
+  }
+
   async getProfile(userId: string): Promise<BrokerProfile> {
     return {
       id: userId,
@@ -25,8 +34,9 @@ export class PaperBrokerAdapter implements BrokerAdapter {
   }
 
   async getFunds(userId: string): Promise<BrokerFunds> {
-    const wallet = await Wallet.findOne({ userId });
-    const available = wallet?.balance ?? 0;
+    const userQuery = this.buildUserQuery(userId);
+    const wallet = await Wallet.findOne(userQuery);
+    const available = Number(wallet?.balance ?? 0);
     return {
       available,
       used: 0,
@@ -36,24 +46,27 @@ export class PaperBrokerAdapter implements BrokerAdapter {
   }
 
   async getHoldings(userId: string) {
-    const holdings = await Holding.find({ userId, quantity: { $gt: 0 } });
+    const userQuery = this.buildUserQuery(userId);
+    const holdings = await Holding.find({ ...userQuery, quantity: { $gt: 0 } });
     return Promise.all(
       holdings.map(async (h) => {
         const quote = liveQuoteFromSeries(h.symbol);
-        const invested = h.quantity * h.averagePrice;
-        const currentValue = h.quantity * quote.price;
+        const hQuantity = Number(h.quantity);
+        const hAvgPrice = Number(h.averagePrice);
+        const invested = hQuantity * hAvgPrice;
+        const currentValue = hQuantity * quote.price;
         const pnl = currentValue - invested;
         return {
           symbol: h.symbol,
           instrumentId: String(h.instrumentId),
-          quantity: h.quantity,
-          averagePrice: h.averagePrice,
+          quantity: hQuantity,
+          averagePrice: hAvgPrice,
           currentPrice: quote.price,
           invested,
           currentValue,
           pnl,
           pnlPercent: invested ? (pnl / invested) * 100 : 0,
-          dayChange: quote.change * h.quantity,
+          dayChange: quote.change * hQuantity,
           dayChangePercent: quote.changePercent,
         };
       })
@@ -61,20 +74,23 @@ export class PaperBrokerAdapter implements BrokerAdapter {
   }
 
   async getPositions(userId: string) {
-    const positions = await Position.find({ userId });
+    const userQuery = this.buildUserQuery(userId);
+    const positions = await Position.find(userQuery);
     return Promise.all(
       positions.map(async (p) => {
         const quote = liveQuoteFromSeries(p.symbol);
-        const pnl = (quote.price - p.averagePrice) * p.quantity;
+        const pQuantity = Number(p.quantity);
+        const pAvgPrice = Number(p.averagePrice);
+        const pnl = (quote.price - pAvgPrice) * pQuantity;
         return {
           symbol: p.symbol,
           instrumentId: String(p.instrumentId),
-          quantity: p.quantity,
-          averagePrice: p.averagePrice,
+          quantity: pQuantity,
+          averagePrice: pAvgPrice,
           currentPrice: quote.price,
           pnl,
-          pnlPercent: p.averagePrice
-            ? ((quote.price - p.averagePrice) / p.averagePrice) * 100
+          pnlPercent: pAvgPrice
+            ? ((quote.price - pAvgPrice) / pAvgPrice) * 100
             : 0,
           side: p.side,
         };
@@ -83,12 +99,14 @@ export class PaperBrokerAdapter implements BrokerAdapter {
   }
 
   async getOrders(userId: string): Promise<OrderDto[]> {
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 }).limit(100);
+    const userQuery = this.buildUserQuery(userId);
+    const orders = await Order.find(userQuery).sort({ createdAt: -1 }).limit(100);
     return orders.map(mapOrder);
   }
 
   async getOrder(userId: string, id: string): Promise<OrderDto | null> {
-    const order = await Order.findOne({ _id: id, userId });
+    const userQuery = this.buildUserQuery(userId);
+    const order = await Order.findOne({ _id: id, ...userQuery });
     return order ? mapOrder(order) : null;
   }
 

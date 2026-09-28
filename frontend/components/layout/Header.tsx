@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
   Search,
@@ -11,11 +12,14 @@ import {
   ShieldAlert,
   Activity,
   Wallet,
+  PlusCircle,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useSocket } from "@/providers/socket-provider";
 import { SearchCommand } from "./SearchCommand";
 import { NotificationCenter } from "./NotificationCenter";
+import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
+import { portfolioService } from "@/services/portfolio";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
@@ -23,7 +27,15 @@ export function Header() {
   const { connected } = useSocket();
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const { data: portfolio } = useQuery({
+    queryKey: ["portfolio"],
+    queryFn: portfolioService.getPortfolio,
+    enabled: Boolean(user),
+    refetchInterval: 5000,
+  });
 
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-[var(--color-line)] bg-white/90 px-4 backdrop-blur-md sm:px-6">
@@ -67,6 +79,20 @@ export function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Add Money Button */}
+        {user && (
+          <button
+            onClick={() => setAddMoneyOpen(true)}
+            className="flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all active:scale-95"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Add Money</span>
+            <span className="hidden sm:inline-block bg-emerald-700/80 px-1.5 py-0.5 rounded text-[10px] font-mono-num ml-0.5">
+              ₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </span>
+          </button>
+        )}
+
         {/* Mobile Search Icon */}
         <button
           onClick={() => setSearchOpen(true)}
@@ -117,6 +143,16 @@ export function Header() {
                     </span>
                   </div>
                   <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setAddMoneyOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-emerald-700 hover:bg-emerald-50 font-semibold"
+                    >
+                      <PlusCircle className="h-4 w-4 text-emerald-600" />
+                      <span>Add Money (₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN")})</span>
+                    </button>
                     <Link
                       href="/app/profile"
                       onClick={() => setMenuOpen(false)}
@@ -176,6 +212,12 @@ export function Header() {
       <NotificationCenter
         open={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
+      />
+
+      {/* Add Money Deposit Modal */}
+      <AddMoneyModal
+        open={addMoneyOpen}
+        onClose={() => setAddMoneyOpen(false)}
       />
     </header>
   );

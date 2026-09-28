@@ -3,29 +3,35 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { PieChart, Wallet, TrendingUp, Layers, Compass } from "lucide-react";
+import { PieChart, Wallet, TrendingUp, Layers, PlusCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { StatCard } from "@/components/ui/stat-card";
 import { PnlBadge } from "@/components/ui/pnl-badge";
 import { PriceChange } from "@/components/ui/price-change";
+import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
 import { portfolioService } from "@/services/portfolio";
+import { Button } from "@/components/ui/button";
 
 export default function PortfolioPage() {
   const [tab, setTab] = useState<"holdings" | "positions">("holdings");
+  const [addMoneyOpen, setAddMoneyOpen] = useState(false);
 
   const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
     queryKey: ["portfolio"],
     queryFn: portfolioService.getPortfolio,
+    refetchInterval: 3000,
   });
 
   const { data: holdings = [], isLoading: loadingHoldings } = useQuery({
     queryKey: ["portfolio", "holdings"],
     queryFn: portfolioService.getHoldings,
+    refetchInterval: 3000,
   });
 
   const { data: positions = [], isLoading: loadingPositions } = useQuery({
     queryKey: ["portfolio", "positions"],
     queryFn: portfolioService.getPositions,
+    refetchInterval: 3000,
   });
 
   return (
@@ -42,6 +48,13 @@ export default function PortfolioPage() {
               Real-time evaluation of long-term holdings and active intraday positions
             </p>
           </div>
+          <Button
+            onClick={() => setAddMoneyOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Add Money to Wallet</span>
+          </Button>
         </div>
 
         {/* 4 Summary Stat Cards */}
@@ -211,6 +224,11 @@ export default function PortfolioPage() {
           )}
         </div>
 
+        {/* Add Money Modal */}
+        <AddMoneyModal
+          open={addMoneyOpen}
+          onClose={() => setAddMoneyOpen(false)}
+        />
       </div>
     </AppShell>
   );
