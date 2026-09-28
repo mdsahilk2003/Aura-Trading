@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { DEFAULT_PAPER_FUNDS, ERROR_CODES, type ModifyOrderRequest, type PlaceOrderRequest } from "@aura/shared";
 import type { BrokerManager } from "../brokers/BrokerManager";
 import type { MarketDataService } from "../market-data/MarketDataService";
@@ -30,15 +31,20 @@ export class TradingService {
   }
 
   async ensureWallet(userId: string) {
-    let wallet = await Wallet.findOne({ userId });
+    const userObjId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+    const userQuery = Types.ObjectId.isValid(userId)
+      ? { $or: [{ userId }, { userId: userObjId }] }
+      : { userId };
+
+    let wallet = await Wallet.findOne(userQuery);
     if (!wallet) {
       wallet = await Wallet.create({
-        userId,
+        userId: userObjId,
         balance: DEFAULT_PAPER_FUNDS,
         currency: "INR",
       });
       await WalletTransaction.create({
-        userId,
+        userId: userObjId,
         walletId: wallet._id,
         type: "CREDIT",
         amount: DEFAULT_PAPER_FUNDS,
@@ -46,7 +52,7 @@ export class TradingService {
         reference: "PAPER_SEED",
         meta: { mode: "PAPER" },
       });
-      await Portfolio.create({ userId, invested: 0, snapshotValue: 0 });
+      await Portfolio.create({ userId: userObjId, invested: 0, snapshotValue: 0 });
     }
     return wallet;
   }
@@ -77,10 +83,15 @@ export class TradingService {
 
     const wallet = await this.ensureWallet(userId);
 
+    const userObjId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+    const userQuery = Types.ObjectId.isValid(userId)
+      ? { $or: [{ userId }, { userId: userObjId }] }
+      : { userId };
+
     if (input.side === "SELL") {
-      const holding = await Holding.findOne({ userId, symbol });
-      const position = await Position.findOne({ userId, symbol });
-      const availableQty = holding?.quantity || position?.quantity || 0;
+      const holding = await Holding.findOne({ symbol, ...userQuery });
+      const position = await Position.findOne({ symbol, ...userQuery });
+      const availableQty = Number(holding?.quantity || position?.quantity || 0);
       if (availableQty < input.quantity) {
         throw new AppError(
           "Insufficient holdings to sell",
@@ -118,7 +129,7 @@ export class TradingService {
     }
 
     await AuditLog.create({
-      userId,
+      userId: userObjId,
       action: "ORDER_PLACE",
       resource: "Order",
       resourceId: order.id,
@@ -133,9 +144,13 @@ export class TradingService {
     userId: string,
     order: InstanceType<typeof Order>
   ) {
-    const fillPrice = order.averagePrice ?? 0;
-    const value = fillPrice * order.quantity;
+    const fillPrice = Number(order.averagePrice ?? 0);
+    const value = fillPrice * Number(order.quantity);
     const wallet = await this.ensureWallet(userId);
+    const userObjId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+    const userQuery = Types.ObjectId.isValid(userId)
+      ? { $or: [{ userId }, { userId: userObjId }] }
+      : { userId };
 
     if (order.side === "BUY") {
       if (wallet.balance < value) {
@@ -147,7 +162,7 @@ export class TradingService {
       wallet.balance -= value;
       await wallet.save();
       await WalletTransaction.create({
-        userId,
+        userId: userObjId,
         walletId: wallet._id,
         type: "TRADE_SETTLE",
         amount: -value,
@@ -155,19 +170,19 @@ export class TradingService {
         reference: order.id,
       });
 
-      let totalQty = order.quantity;
+      let totalQty = Number(order.quantity);
       let newAvgPrice = fillPrice;
 
-      const existing = await Holding.findOne({ userId, symbol: order.symbol });
+      const existing = await Holding.findOne({ symbol: order.symbol, ...userQuery });
       if (existing) {
-        totalQty = existing.quantity + order.quantity;
-        newAvgPrice = (existing.averagePrice * existing.quantity + value) / totalQty;
+        totalQty = Number(existing.quantity) + Number(order.quantity);
+        newAvgPrice = (Number(existing.averagePrice) * Number(existing.quantity) + value) / totalQty;
         existing.averagePrice = newAvgPrice;
         existing.quantity = totalQty;
         await existing.save();
       } else {
         await Holding.create({
-          userId,
+          userId: userObjId,
           instrumentId: order.instrumentId,
           symbol: order.symbol,
           quantity: totalQty,
@@ -176,9 +191,9 @@ export class TradingService {
       }
 
       await Position.findOneAndUpdate(
-        { userId, symbol: order.symbol },
+        { symbol: order.symbol, ...userQuery },
         {
-          userId,
+          userId: userObjId,
           instrumentId: order.instrumentId,
           symbol: order.symbol,
           quantity: totalQty,
@@ -188,8 +203,9 @@ export class TradingService {
         { upsert: true }
       );
     } else {
-      const holding = await Holding.findOne({ userId, symbol: order.symbol });
-      if (!holding || holding.quantity < order.quantity) {
+      const holding = await Holding.findOne({ symbol: order.symbol, ...userQuery });
+      const currentQty = Number(holding?.quantity || 0);
+      if (!holding || currentQty < Number(order.quantity)) {
         order.status = "FAILED";
         await order.save();
         throw new AppError(
@@ -198,21 +214,22 @@ export class TradingService {
           ERROR_CODES.INSUFFICIENT_HOLDINGS
         );
       }
-      holding.quantity -= order.quantity;
-      if (holding.quantity <= 0) {
+      const remainingQty = currentQty - Number(order.quantity);
+      holding.quantity = remainingQty;
+      if (remainingQty <= 0) {
         await holding.deleteOne();
-        await Position.deleteOne({ userId, symbol: order.symbol });
+        await Position.deleteOne({ symbol: order.symbol, ...userQuery });
       } else {
         await holding.save();
         await Position.findOneAndUpdate(
-          { userId, symbol: order.symbol },
-          { quantity: holding.quantity, averagePrice: holding.averagePrice }
+          { symbol: order.symbol, ...userQuery },
+          { quantity: remainingQty, averagePrice: holding.averagePrice }
         );
       }
       wallet.balance += value;
       await wallet.save();
       await WalletTransaction.create({
-        userId,
+        userId: userObjId,
         walletId: wallet._id,
         type: "TRADE_SETTLE",
         amount: value,
@@ -222,7 +239,7 @@ export class TradingService {
     }
 
     await Trade.create({
-      userId,
+      userId: userObjId,
       orderId: order._id,
       instrumentId: order.instrumentId,
       symbol: order.symbol,
@@ -233,15 +250,16 @@ export class TradingService {
       executedAt: new Date(),
     });
 
-    const portfolio = await Portfolio.findOne({ userId });
-    if (portfolio) {
-      const holdings = await Holding.find({ userId });
-      portfolio.invested = holdings.reduce(
-        (sum, h) => sum + h.quantity * h.averagePrice,
-        0
-      );
-      await portfolio.save();
+    let portfolio = await Portfolio.findOne(userQuery);
+    if (!portfolio) {
+      portfolio = await Portfolio.create({ userId: userObjId, invested: 0, snapshotValue: 0 });
     }
+    const holdings = await Holding.find(userQuery);
+    portfolio.invested = holdings.reduce(
+      (sum, h) => sum + Number(h.quantity) * Number(h.averagePrice),
+      0
+    );
+    await portfolio.save();
   }
 
   async modifyOrder(userId: string, id: string, patch: ModifyOrderRequest) {
