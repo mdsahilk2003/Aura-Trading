@@ -105,6 +105,68 @@ export default function PortfolioPage() {
           />
         </div>
 
+        {/* Portfolio Asset Allocation Visualizer */}
+        {holdings.length > 0 && (
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <PieChart className="h-5 w-5 text-sky-600" />
+                <h3 className="font-display text-sm font-bold text-slate-900">Asset Allocation Breakdown</h3>
+              </div>
+              <span className="text-xs text-slate-500 font-mono-num font-bold">
+                {holdings.length} Active Stock{holdings.length > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* Proportional Distribution Bar */}
+            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 flex">
+              {holdings.map((h, i) => {
+                const totalVal = portfolio?.currentValue || 1;
+                const pct = Math.max(3, Math.round((h.currentValue / totalVal) * 100));
+                const colors = [
+                  "bg-sky-500",
+                  "bg-emerald-500",
+                  "bg-purple-500",
+                  "bg-amber-500",
+                  "bg-indigo-500",
+                  "bg-rose-500",
+                ];
+                return (
+                  <div
+                    key={h.symbol}
+                    style={{ width: `${pct}%` }}
+                    className={`h-full ${colors[i % colors.length]} transition-all`}
+                    title={`${h.symbol}: ${pct}%`}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Legend Pills */}
+            <div className="flex flex-wrap gap-3 pt-1">
+              {holdings.map((h, i) => {
+                const totalVal = portfolio?.currentValue || 1;
+                const pct = totalVal ? ((h.currentValue / totalVal) * 100).toFixed(1) : "0.0";
+                const dotColors = [
+                  "bg-sky-500",
+                  "bg-emerald-500",
+                  "bg-purple-500",
+                  "bg-amber-500",
+                  "bg-indigo-500",
+                  "bg-rose-500",
+                ];
+                return (
+                  <div key={h.symbol} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-1.5 border border-slate-100 text-xs">
+                    <span className={`h-2.5 w-2.5 rounded-full ${dotColors[i % dotColors.length]}`} />
+                    <span className="font-bold text-slate-800">{h.symbol}</span>
+                    <span className="text-slate-400 font-mono-num text-[11px]">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Holdings / Positions Tab Switcher */}
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -171,7 +233,20 @@ export default function PortfolioPage() {
                   ) : (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-slate-400">
-                        No portfolio holdings found. Buy shares from the Markets page!
+                        <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                          <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <PieChart className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 text-sm">No portfolio holdings found</p>
+                            <p className="text-xs text-slate-500 mt-0.5">Explore live market prices and buy stocks to start building your portfolio!</p>
+                          </div>
+                          <Link href="/app/markets">
+                            <Button className="bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs h-9 px-4 rounded-xl mt-1">
+                              Explore Markets to Buy Stocks
+                            </Button>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   )}

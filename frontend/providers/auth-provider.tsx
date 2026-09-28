@@ -72,7 +72,7 @@ export function AuthProvider({
     }
     queryClient.setQueryData(["auth", "me"], null);
     queryClient.clear();
-    router.replace("/login");
+    router.replace("/");
   }, [queryClient, router]);
 
   const refresh = useCallback(async () => {

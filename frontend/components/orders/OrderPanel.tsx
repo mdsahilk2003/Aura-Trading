@@ -6,9 +6,11 @@ import type { OrderSide, OrderType } from "@aura/shared";
 import { ordersService } from "@/services/orders";
 import { portfolioService } from "@/services/portfolio";
 import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
+import { useAuth } from "@/providers/auth-provider";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, ArrowUpRight, ArrowDownRight, Wallet, CheckCircle2, AlertCircle, PlusCircle } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, Wallet, CheckCircle2, AlertCircle, PlusCircle, LogIn } from "lucide-react";
 
 interface OrderPanelProps {
   symbol: string;
@@ -17,6 +19,7 @@ interface OrderPanelProps {
 }
 
 export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [side, setSide] = useState<OrderSide>("BUY");
   const [orderType, setOrderType] = useState<OrderType>("MARKET");
@@ -217,8 +220,26 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
         </div>
       )}
 
-      {/* Submit Button or Add Money Button */}
-      {side === "BUY" && estimatedValue > availableFunds ? (
+      {/* Submit Button or Add Money Button or Sign In Button */}
+      {!user ? (
+        <div className="space-y-2">
+          <Link
+            href={`/login?next=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/app")}`}
+            className="block w-full"
+          >
+            <Button
+              type="button"
+              className="w-full bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs h-11 transition-all flex items-center justify-center gap-2 shadow-md"
+            >
+              <LogIn className="h-4 w-4 text-sky-400" />
+              <span>SIGN IN TO TRADE {symbol}</span>
+            </Button>
+          </Link>
+          <p className="text-[11px] text-slate-500 text-center">
+            You must be logged in to buy or sell stocks
+          </p>
+        </div>
+      ) : side === "BUY" && estimatedValue > availableFunds ? (
         <div className="space-y-2">
           <Button
             type="button"
