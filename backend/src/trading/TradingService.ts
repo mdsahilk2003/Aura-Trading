@@ -164,13 +164,18 @@ export class TradingService {
       let totalQty = Number(order.quantity);
       let newAvgPrice = fillPrice;
 
-      const existing = await Holding.findOne({ symbol: order.symbol, ...userQuery });
-      if (existing) {
-        totalQty = Number(existing.quantity) + Number(order.quantity);
-        newAvgPrice = (Number(existing.averagePrice) * Number(existing.quantity) + value) / totalQty;
-        existing.averagePrice = newAvgPrice;
-        existing.quantity = totalQty;
-        await existing.save();
+      const userIdStr = String(userId);
+      const existingHolding = await Holding.findOne({
+        symbol: order.symbol,
+        $or: [{ userId: userIdStr }, { userId: userObjId }],
+      });
+
+      if (existingHolding) {
+        totalQty = Number(existingHolding.quantity) + Number(order.quantity);
+        newAvgPrice = (Number(existingHolding.averagePrice) * Number(existingHolding.quantity) + value) / totalQty;
+        existingHolding.averagePrice = newAvgPrice;
+        existingHolding.quantity = totalQty;
+        await existingHolding.save();
       } else {
         await Holding.create({
           userId: userObjId,
@@ -181,20 +186,32 @@ export class TradingService {
         });
       }
 
-      await Position.findOneAndUpdate(
-        { symbol: order.symbol, ...userQuery },
-        {
+      const existingPos = await Position.findOne({
+        symbol: order.symbol,
+        $or: [{ userId: userIdStr }, { userId: userObjId }],
+      });
+
+      if (existingPos) {
+        existingPos.quantity = totalQty;
+        existingPos.averagePrice = newAvgPrice;
+        existingPos.side = "BUY";
+        await existingPos.save();
+      } else {
+        await Position.create({
           userId: userObjId,
           instrumentId: order.instrumentId,
           symbol: order.symbol,
           quantity: totalQty,
           averagePrice: newAvgPrice,
           side: "BUY",
-        },
-        { upsert: true }
-      );
+        });
+      }
     } else {
-      const holding = await Holding.findOne({ symbol: order.symbol, ...userQuery });
+      const userIdStr = String(userId);
+      const holding = await Holding.findOne({
+        symbol: order.symbol,
+        $or: [{ userId: userIdStr }, { userId: userObjId }],
+      });
       const currentQty = Number(holding?.quantity || 0);
       if (!holding || currentQty < Number(order.quantity)) {
         order.status = "FAILED";
@@ -209,13 +226,21 @@ export class TradingService {
       holding.quantity = remainingQty;
       if (remainingQty <= 0) {
         await holding.deleteOne();
-        await Position.deleteOne({ symbol: order.symbol, ...userQuery });
+        await Position.deleteOne({
+          symbol: order.symbol,
+          $or: [{ userId: userIdStr }, { userId: userObjId }],
+        });
       } else {
         await holding.save();
-        await Position.findOneAndUpdate(
-          { symbol: order.symbol, ...userQuery },
-          { quantity: remainingQty, averagePrice: holding.averagePrice }
-        );
+        const pos = await Position.findOne({
+          symbol: order.symbol,
+          $or: [{ userId: userIdStr }, { userId: userObjId }],
+        });
+        if (pos) {
+          pos.quantity = remainingQty;
+          pos.averagePrice = holding.averagePrice;
+          await pos.save();
+        }
       }
       wallet.balance += value;
       await wallet.save();
