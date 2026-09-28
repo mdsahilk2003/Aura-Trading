@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User, Mail, Phone, Calendar, ShieldCheck, LogOut, Loader2, CheckCircle2, Wallet, PlusCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -18,6 +18,15 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("addMoney") === "true") {
+        setAddMoneyOpen(true);
+      }
+    }
+  }, []);
 
   const { data: portfolio } = useQuery({
     queryKey: ["portfolio"],

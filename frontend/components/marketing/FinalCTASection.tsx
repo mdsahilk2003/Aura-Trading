@@ -25,9 +25,9 @@ export function FinalCTASection() {
             </p>
 
             <div className="pt-2">
-              <Link href="/register">
+              <Link href="/markets">
                 <Button size="lg" className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-8 h-12 rounded-xl shadow-lg shadow-sky-500/20">
-                  <span>CREATE FREE ACCOUNT</span>
+                  <span>START TRADING NOW</span>
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

@@ -42,7 +42,7 @@ export function PaperTradingSection() {
             </ul>
 
             <div className="pt-2">
-              <Link href="/register">
+              <Link href="/markets">
                 <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-7 rounded-xl shadow-md">
                   <span>START PAPER TRADING</span>
                   <ArrowRight className="ml-2 h-4 w-4" />

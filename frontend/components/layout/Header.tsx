@@ -80,15 +80,13 @@ export function Header() {
       {/* Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Add Money Button */}
-        {user && (
-          <button
-            onClick={() => setAddMoneyOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all active:scale-95"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>Add Money</span>
-          </button>
-        )}
+        <Link
+          href="/app/profile?addMoney=true"
+          className="flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all active:scale-95"
+        >
+          <PlusCircle className="h-4 w-4" />
+          <span>Add Money</span>
+        </Link>
 
         {/* Mobile Search Icon */}
         <button
@@ -145,11 +143,9 @@ export function Header() {
                     </div>
                   </div>
                   <div className="py-1 space-y-0.5">
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setAddMoneyOpen(true);
-                      }}
+                    <Link
+                      href="/app/profile?addMoney=true"
+                      onClick={() => setMenuOpen(false)}
                       className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100/80 font-bold transition-colors border border-emerald-200/60"
                     >
                       <div className="flex items-center gap-2">
@@ -159,7 +155,7 @@ export function Header() {
                       <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">
                         + Deposit
                       </span>
-                    </button>
+                    </Link>
                     <Link
                       href="/app/profile"
                       onClick={() => setMenuOpen(false)}

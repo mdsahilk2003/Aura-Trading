@@ -38,7 +38,7 @@ export function HeroSection() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
-              <Link href="/register" className="w-full sm:w-auto">
+              <Link href="/markets" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto bg-slate-950 text-white hover:bg-slate-800 font-bold px-8 h-12 shadow-lg shadow-slate-950/20 rounded-xl">
                   <span>START TRADING</span>
                   <ArrowRight className="ml-2 h-4 w-4" />

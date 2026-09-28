@@ -29,9 +29,9 @@ export function Footer() {
             <h4 className="font-display font-bold text-slate-900 mb-3 uppercase tracking-wider text-[11px]">Product</h4>
             <ul className="space-y-2">
               <li><Link href="/markets" className="hover:text-slate-900">Live Markets</Link></li>
-              <li><Link href="/register" className="hover:text-slate-900">Paper Trading</Link></li>
-              <li><Link href="/register" className="hover:text-slate-900">Trading Bot</Link></li>
-              <li><Link href="/register" className="hover:text-slate-900">Analytics</Link></li>
+              <li><Link href="/markets" className="hover:text-slate-900">Paper Trading</Link></li>
+              <li><Link href="/markets" className="hover:text-slate-900">Trading Bot</Link></li>
+              <li><Link href="/markets" className="hover:text-slate-900">Analytics</Link></li>
             </ul>
           </div>
 

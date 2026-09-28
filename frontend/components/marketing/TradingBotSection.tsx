@@ -83,9 +83,9 @@ export function TradingBotSection() {
               <p className="text-xs text-slate-400">Run paper trading bot loops with zero manual intervention required.</p>
             </div>
           </div>
-          <Link href="/register">
+          <Link href="/markets">
             <Button size="lg" className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-7 rounded-xl">
-              <span>Launch Trading Bot</span>
+              <span>Explore Trading Bot Markets</span>
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
