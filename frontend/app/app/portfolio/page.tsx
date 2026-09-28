@@ -204,35 +204,49 @@ export default function PortfolioPage() {
                     <th className="pb-3 text-right">Quantity</th>
                     <th className="pb-3 text-right">Avg Price</th>
                     <th className="pb-3 text-right">LTP</th>
+                    <th className="pb-3 text-right">Invested Value</th>
                     <th className="pb-3 text-right">Current Value</th>
                     <th className="pb-3 text-right">Total P&L</th>
+                    <th className="pb-3 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
                   {loadingHoldings ? (
-                    <tr><td colSpan={6} className="py-12 text-center text-slate-400">Loading holdings...</td></tr>
+                    <tr><td colSpan={8} className="py-12 text-center text-slate-400">Loading holdings...</td></tr>
                   ) : holdings.length > 0 ? (
-                    holdings.map((h) => (
-                      <tr key={h.symbol} className="hover:bg-slate-50">
-                        <td className="py-3 font-bold text-slate-900">
-                          <Link href={`/app/markets/${h.symbol}`} className="hover:text-sky-600">
-                            {h.symbol}
-                          </Link>
-                        </td>
-                        <td className="py-3 text-right font-mono-num">{h.quantity}</td>
-                        <td className="py-3 text-right font-mono-num">₹{h.averagePrice.toFixed(2)}</td>
-                        <td className="py-3 text-right font-mono-num">₹{h.currentPrice.toFixed(2)}</td>
-                        <td className="py-3 text-right font-mono-num font-bold text-slate-900">
-                          ₹{h.currentValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="py-3 text-right font-mono-num">
-                          <PnlBadge amount={h.pnl} percentage={h.pnlPercent} />
-                        </td>
-                      </tr>
-                    ))
+                    holdings.map((h) => {
+                      const isProfit = h.pnl >= 0;
+                      return (
+                        <tr key={h.symbol} className="hover:bg-slate-50">
+                          <td className="py-3 font-bold text-slate-900">
+                            <Link href={`/app/markets/${h.symbol}`} className="hover:text-sky-600">
+                              <div>{h.symbol}</div>
+                              <div className="text-[10px] text-slate-400 font-normal">{h.symbol} Ltd</div>
+                            </Link>
+                          </td>
+                          <td className="py-3 text-right font-mono-num">{h.quantity}</td>
+                          <td className="py-3 text-right font-mono-num">₹{h.averagePrice.toFixed(2)}</td>
+                          <td className="py-3 text-right font-mono-num">₹{h.currentPrice.toFixed(2)}</td>
+                          <td className="py-3 text-right font-mono-num">
+                            ₹{h.invested.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                          <td className="py-3 text-right font-mono-num font-bold text-slate-900">
+                            ₹{h.currentValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                          <td className="py-3 text-right font-mono-num">
+                            <PnlBadge amount={h.pnl} percentage={h.pnlPercent} />
+                          </td>
+                          <td className="py-3 text-right">
+                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-extrabold ${isProfit ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-rose-100 text-rose-800 border border-rose-300"}`}>
+                              {isProfit ? "PROFIT" : "LOSS"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                      <td colSpan={8} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center space-y-3 py-4">
                           <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                             <PieChart className="h-6 w-6" />

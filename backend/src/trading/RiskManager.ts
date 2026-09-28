@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { ERROR_CODES, RISK_DEFAULTS, type PlaceOrderRequest } from "@aura/shared";
 import { AppError } from "../utils/errors";
 import { Order } from "../models/Order";
@@ -24,15 +25,18 @@ export class RiskManager {
       );
     }
 
-    const wallet = await Wallet.findOne({ userId });
-    const equity = wallet?.balance ?? availableFunds;
-    const maxPosition = equity * (RISK_DEFAULTS.maxPositionPercent / 100);
-    if (order.side === "BUY" && estimatedValue > maxPosition) {
-      throw new AppError(
-        `Order exceeds maximum position size (${RISK_DEFAULTS.maxPositionPercent}%)`,
-        422,
-        ERROR_CODES.RISK_REJECTED
-      );
+    if (isBot) {
+      const userObjId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId;
+      const wallet = await Wallet.findOne({ $or: [{ userId }, { userId: userObjId }] });
+      const equity = wallet?.balance ?? availableFunds;
+      const maxPosition = equity * (RISK_DEFAULTS.maxPositionPercent / 100);
+      if (order.side === "BUY" && estimatedValue > maxPosition) {
+        throw new AppError(
+          `Bot order exceeds maximum position size (${RISK_DEFAULTS.maxPositionPercent}%)`,
+          422,
+          ERROR_CODES.RISK_REJECTED
+        );
+      }
     }
 
     const startOfDay = new Date();

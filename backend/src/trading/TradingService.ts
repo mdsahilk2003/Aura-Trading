@@ -117,6 +117,12 @@ export class TradingService {
         message: `${order.side} ${order.quantity} ${order.symbol} @ ${order.averagePrice}`,
         meta: { orderId: order.id },
       });
+    } else if (order.status === "REJECTED" || order.status === "FAILED") {
+      throw new AppError(
+        order.rejectionReason || `Order ${order.status.toLowerCase()} by broker`,
+        422,
+        ERROR_CODES.BROKER_ERROR
+      );
     }
 
     await AuditLog.create({
