@@ -83,13 +83,10 @@ export function Header() {
         {user && (
           <button
             onClick={() => setAddMoneyOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all active:scale-95"
+            className="flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all active:scale-95"
           >
             <PlusCircle className="h-4 w-4" />
             <span>Add Money</span>
-            <span className="hidden sm:inline-block bg-emerald-700/80 px-1.5 py-0.5 rounded text-[10px] font-mono-num ml-0.5">
-              ₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-            </span>
           </button>
         )}
 
@@ -134,24 +131,34 @@ export function Header() {
                   className="fixed inset-0 z-40"
                   onClick={() => setMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 z-50 w-56 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95 duration-100">
-                  <div className="px-3 py-2 border-b border-slate-100">
-                    <p className="text-xs font-semibold text-slate-900">{user.name}</p>
+                <div className="absolute right-0 mt-2 z-50 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/60 rounded-xl mb-1">
+                    <p className="text-xs font-bold text-slate-900">{user.name}</p>
                     <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-                    <span className="inline-block mt-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 uppercase tracking-wider">
-                      {user.role}
-                    </span>
+                    
+                    {/* Wallet Balance Amount */}
+                    <div className="mt-2.5 flex items-center justify-between bg-emerald-50 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg">
+                      <span className="text-[11px] font-semibold text-emerald-800">Wallet Balance</span>
+                      <span className="text-xs font-extrabold text-emerald-700 font-mono-num">
+                        ₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
                   </div>
-                  <div className="py-1">
+                  <div className="py-1 space-y-0.5">
                     <button
                       onClick={() => {
                         setMenuOpen(false);
                         setAddMoneyOpen(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-emerald-700 hover:bg-emerald-50 font-semibold"
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100/80 font-bold transition-colors border border-emerald-200/60"
                     >
-                      <PlusCircle className="h-4 w-4 text-emerald-600" />
-                      <span>Add Money (₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN")})</span>
+                      <div className="flex items-center gap-2">
+                        <PlusCircle className="h-4 w-4 text-emerald-600" />
+                        <span>Add Money</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">
+                        + Deposit
+                      </span>
                     </button>
                     <Link
                       href="/app/profile"

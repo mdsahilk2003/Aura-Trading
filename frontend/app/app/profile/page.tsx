@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Phone, Calendar, ShieldCheck, LogOut, Loader2, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { User, Mail, Phone, Calendar, ShieldCheck, LogOut, Loader2, CheckCircle2, Wallet, PlusCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/providers/auth-provider";
 import { authService } from "@/services/auth";
+import { portfolioService } from "@/services/portfolio";
+import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -14,6 +17,13 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState(user?.phone || "");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [addMoneyOpen, setAddMoneyOpen] = useState(false);
+
+  const { data: portfolio } = useQuery({
+    queryKey: ["portfolio"],
+    queryFn: portfolioService.getPortfolio,
+    refetchInterval: 3000,
+  });
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +52,28 @@ export default function ProfilePage() {
           <p className="text-xs text-slate-500 mt-1">
             Manage your credentials, connected OAuth providers, and wallet settings
           </p>
+        </div>
+
+        {/* Wallet Balance Highlight Banner */}
+        <div className="rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-900 via-teal-950 to-slate-900 p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <Wallet className="h-6 w-6" />
+            </div>
+            <div>
+              <span className="text-xs text-emerald-300 font-semibold uppercase tracking-wider">Trading Account Wallet</span>
+              <h3 className="font-display text-2xl font-extrabold text-white font-mono-num mt-0.5">
+                ₹{(portfolio?.availableFunds ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+          </div>
+          <Button
+            onClick={() => setAddMoneyOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs h-11 px-5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Add Money to Wallet</span>
+          </Button>
         </div>
 
         {/* Profile Card */}
@@ -127,6 +159,11 @@ export default function ProfilePage() {
           </form>
         </div>
 
+        {/* Add Money Modal */}
+        <AddMoneyModal
+          open={addMoneyOpen}
+          onClose={() => setAddMoneyOpen(false)}
+        />
       </div>
     </AppShell>
   );
