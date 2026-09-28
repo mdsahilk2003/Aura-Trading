@@ -115,12 +115,12 @@ export class PaperBrokerAdapter implements BrokerAdapter {
       side: order.side,
       orderType: order.orderType,
       quantity: order.quantity,
-      filledQuantity: order.orderType === "MARKET" ? order.quantity : 0,
+      filledQuantity: order.quantity,
       price: order.price,
       triggerPrice: order.triggerPrice,
-      averagePrice: order.orderType === "MARKET" ? fillPrice : undefined,
-      status: order.orderType === "MARKET" ? "FILLED" : "OPEN",
-      executedAt: order.orderType === "MARKET" ? new Date() : undefined,
+      averagePrice: fillPrice,
+      status: "FILLED",
+      executedAt: new Date(),
     });
 
     return mapOrder(created);

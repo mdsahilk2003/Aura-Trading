@@ -50,6 +50,8 @@ export function OrderPanel({ symbol, currentPrice, onSuccess }: OrderPanelProps)
       });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
+      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
+      queryClient.invalidateQueries({ queryKey: ["markets"] });
       onSuccess?.();
     },
     onError: (err: any) => {

@@ -6,6 +6,7 @@ import { Position } from "../models/Position";
 import { Wallet } from "../models/Wallet";
 import { Portfolio } from "../models/Portfolio";
 import { TradingService } from "./TradingService";
+import { liveQuoteFromSeries } from "../utils/marketSimulation";
 
 export class PortfolioService {
   constructor(
@@ -16,26 +17,36 @@ export class PortfolioService {
 
   async getPortfolio(userId: string): Promise<PortfolioDto> {
     await this.trading.ensureWallet(userId);
-    const [wallet, holdings, portfolio] = await Promise.all([
+    const [wallet, holdings, positions] = await Promise.all([
       Wallet.findOne({ userId }),
       Holding.find({ userId, quantity: { $gt: 0 } }),
-      Portfolio.findOne({ userId }),
+      Position.find({ userId, quantity: { $gt: 0 } }),
     ]);
 
-    const symbols = holdings.map((h) => h.symbol);
+    let portfolio = await Portfolio.findOne({ userId });
+    if (!portfolio) {
+      portfolio = await Portfolio.create({ userId, invested: 0, snapshotValue: 0 });
+    }
+
+    const symbols = Array.from(
+      new Set([...holdings.map((h) => h.symbol), ...positions.map((p) => p.symbol)])
+    );
+
     const quotes =
       symbols.length > 0 ? await this.marketData.getQuotes(symbols) : [];
-    const quoteMap = new Map(quotes.map((q) => [q.symbol, q]));
+    const quoteMap = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
 
     let invested = 0;
     let currentValue = 0;
     let todaysPnl = 0;
 
     for (const h of holdings) {
-      const q = quoteMap.get(h.symbol);
-      const price = q?.price ?? h.averagePrice;
-      invested += h.quantity * h.averagePrice;
-      currentValue += h.quantity * price;
+      const q = quoteMap.get(h.symbol.toUpperCase()) || liveQuoteFromSeries(h.symbol);
+      const price = q?.price && q.price > 0 ? q.price : h.averagePrice;
+      const hInvested = h.quantity * h.averagePrice;
+      const hVal = h.quantity * price;
+      invested += hInvested;
+      currentValue += hVal;
       todaysPnl += (q?.change ?? 0) * h.quantity;
     }
 
@@ -46,11 +57,9 @@ export class PortfolioService {
       ? "PAPER"
       : this.marketData.getMode();
 
-    if (portfolio) {
-      portfolio.invested = invested;
-      portfolio.snapshotValue = currentValue;
-      await portfolio.save();
-    }
+    portfolio.invested = invested;
+    portfolio.snapshotValue = currentValue;
+    await portfolio.save();
 
     return {
       totalValue,
@@ -62,7 +71,7 @@ export class PortfolioService {
       overallPnl,
       overallPnlPercent: invested ? (overallPnl / invested) * 100 : 0,
       returnPercent: invested ? (overallPnl / invested) * 100 : 0,
-      openPositions: holdings.length,
+      openPositions: holdings.length || positions.length,
       mode,
     };
   }
@@ -71,11 +80,11 @@ export class PortfolioService {
     const holdings = await Holding.find({ userId, quantity: { $gt: 0 } });
     if (!holdings.length) return [];
     const quotes = await this.marketData.getQuotes(holdings.map((h) => h.symbol));
-    const quoteMap = new Map(quotes.map((q) => [q.symbol, q]));
+    const quoteMap = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
 
     return holdings.map((h) => {
-      const q = quoteMap.get(h.symbol);
-      const currentPrice = q?.price ?? h.averagePrice;
+      const q = quoteMap.get(h.symbol.toUpperCase()) || liveQuoteFromSeries(h.symbol);
+      const currentPrice = q?.price && q.price > 0 ? q.price : h.averagePrice;
       const invested = h.quantity * h.averagePrice;
       const currentValue = h.quantity * currentPrice;
       const pnl = currentValue - invested;
@@ -96,14 +105,14 @@ export class PortfolioService {
   }
 
   async getPositions(userId: string): Promise<PositionDto[]> {
-    const positions = await Position.find({ userId });
+    const positions = await Position.find({ userId, quantity: { $gt: 0 } });
     if (!positions.length) return [];
     const quotes = await this.marketData.getQuotes(positions.map((p) => p.symbol));
-    const quoteMap = new Map(quotes.map((q) => [q.symbol, q]));
+    const quoteMap = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
 
     return positions.map((p) => {
-      const q = quoteMap.get(p.symbol);
-      const currentPrice = q?.price ?? p.averagePrice;
+      const q = quoteMap.get(p.symbol.toUpperCase()) || liveQuoteFromSeries(p.symbol);
+      const currentPrice = q?.price && q.price > 0 ? q.price : p.averagePrice;
       const pnl = (currentPrice - p.averagePrice) * p.quantity;
       return {
         symbol: p.symbol,

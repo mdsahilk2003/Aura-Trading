@@ -145,11 +145,14 @@ export class TradingService {
         reference: order.id,
       });
 
+      let totalQty = order.quantity;
+      let newAvgPrice = fillPrice;
+
       const existing = await Holding.findOne({ userId, symbol: order.symbol });
       if (existing) {
-        const totalQty = existing.quantity + order.quantity;
-        existing.averagePrice =
-          (existing.averagePrice * existing.quantity + value) / totalQty;
+        totalQty = existing.quantity + order.quantity;
+        newAvgPrice = (existing.averagePrice * existing.quantity + value) / totalQty;
+        existing.averagePrice = newAvgPrice;
         existing.quantity = totalQty;
         await existing.save();
       } else {
@@ -157,7 +160,7 @@ export class TradingService {
           userId,
           instrumentId: order.instrumentId,
           symbol: order.symbol,
-          quantity: order.quantity,
+          quantity: totalQty,
           averagePrice: fillPrice,
         });
       }
@@ -168,8 +171,8 @@ export class TradingService {
           userId,
           instrumentId: order.instrumentId,
           symbol: order.symbol,
-          quantity: order.quantity,
-          averagePrice: fillPrice,
+          quantity: totalQty,
+          averagePrice: newAvgPrice,
           side: "BUY",
         },
         { upsert: true }
@@ -186,14 +189,14 @@ export class TradingService {
         );
       }
       holding.quantity -= order.quantity;
-      if (holding.quantity === 0) {
+      if (holding.quantity <= 0) {
         await holding.deleteOne();
         await Position.deleteOne({ userId, symbol: order.symbol });
       } else {
         await holding.save();
         await Position.findOneAndUpdate(
           { userId, symbol: order.symbol },
-          { quantity: holding.quantity }
+          { quantity: holding.quantity, averagePrice: holding.averagePrice }
         );
       }
       wallet.balance += value;
