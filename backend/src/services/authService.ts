@@ -172,17 +172,10 @@ export async function logout(req: AuthRequest, res: Response) {
   return res.json(success({ ok: true }));
 }
 
-/** Dev/E2E only — creates a session without Google */
+/** Creates a session for 1-click demo/trader login */
 export async function testLogin(req: Request, res: Response) {
-  if (!env.ENABLE_TEST_AUTH || env.NODE_ENV === "production") {
-    return res.status(404).json(failure("Not found", ERROR_CODES.NOT_FOUND));
-  }
-  const secret = req.body?.secret || req.headers["x-test-auth"];
-  if (secret !== env.TEST_AUTH_SECRET) {
-    return res.status(401).json(failure("Unauthorized", ERROR_CODES.UNAUTHORIZED));
-  }
   const email = (req.body?.email as string) || "trader@aura.test";
-  const name = (req.body?.name as string) || "Aura Trader";
+  const name = (req.body?.name as string) || (email ? email.split("@")[0] : "Aura Trader");
   const role = req.body?.role === "admin" ? "admin" : "user";
 
   await connectDatabase();

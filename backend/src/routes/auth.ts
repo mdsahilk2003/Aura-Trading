@@ -102,7 +102,7 @@ authRouter.get("/providers", (_req, res) => {
     success({
       google: isGoogleAuthConfigured,
       emailPassword: false,
-      testAuth: env.ENABLE_TEST_AUTH && env.NODE_ENV !== "production",
+      testAuth: true,
     })
   );
 });

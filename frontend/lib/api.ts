@@ -3,7 +3,7 @@ import type { ApiResponse } from "@aura/shared";
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL !== undefined && process.env.NEXT_PUBLIC_API_URL !== ""
     ? process.env.NEXT_PUBLIC_API_URL
-    : "http://65.1.222.7";
+    : "";
 
 export class ApiClientError extends Error {
   code: string;

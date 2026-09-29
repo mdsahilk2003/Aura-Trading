@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { io, type Socket } from "socket.io-client";
-import { useAuth } from "@/providers/auth-provider";
 
 interface SocketContextValue {
   socket: Socket | null;
@@ -21,17 +20,13 @@ const SocketContext = createContext<SocketContextValue>({
   connected: false,
 });
 
-const WS_URL =
-  process.env.NEXT_PUBLIC_WS_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://65.1.222.7";
-
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const instance = io(WS_URL, {
+    const targetUrl = process.env.NEXT_PUBLIC_WS_URL || "";
+    const instance = io(targetUrl, {
       withCredentials: true,
       transports: ["websocket", "polling"],
       autoConnect: true,
