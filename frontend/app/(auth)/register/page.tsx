@@ -20,12 +20,16 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleRegister = async () => {
+    if (!email || !name) {
+      setErrorMsg("Please enter your name and email address to create an account.");
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
     try {
       await authService.testLogin({
-        email: email || "new.trader@aura.test",
-        name: name || "New Trader",
+        email: email.trim(),
+        name: name.trim(),
       });
       await refresh();
       router.push("/app");
@@ -36,21 +40,8 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setErrorMsg("");
-    try {
-      await authService.testLogin({
-        email: email || "Mdsahilk2003@gmail.com",
-        name: name || "Sahil Trader",
-      });
-      await refresh();
-      router.push("/app");
-    } catch {
-      window.location.href = authService.googleUrl();
-    } finally {
-      setLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    window.location.href = authService.googleUrl();
   };
 
   return (

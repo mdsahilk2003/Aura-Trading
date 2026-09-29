@@ -24,12 +24,16 @@ function LoginForm() {
   const oauthReason = searchParams?.get("reason");
 
   const handleTestLogin = async () => {
+    if (!email) {
+      setErrorMsg("Please enter your email address below to sign in.");
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
     try {
       await authService.testLogin({
-        email: email || "trader@aura.test",
-        name: email ? email.split("@")[0] : "Aura Trader",
+        email: email.trim(),
+        name: email.split("@")[0],
       });
       await refresh();
       router.push(nextUrl);
@@ -40,21 +44,8 @@ function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setErrorMsg("");
-    try {
-      await authService.testLogin({
-        email: "Mdsahilk2003@gmail.com",
-        name: "Sahil Trader",
-      });
-      await refresh();
-      router.push(nextUrl);
-    } catch {
-      window.location.href = authService.googleUrl();
-    } finally {
-      setLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    window.location.href = authService.googleUrl();
   };
 
   return (
