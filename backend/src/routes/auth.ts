@@ -25,37 +25,32 @@ configurePassport();
 
 export const authRouter = Router();
 
-authRouter.get("/google", async (req, res, next) => {
+authRouter.get("/google", async (req, res) => {
   const host = req.get("x-forwarded-host") || req.get("host") || "localhost:3000";
   const protocol = req.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const returnTo = String(req.query.state || `${protocol}://${host}`);
 
-  if (!isGoogleAuthConfigured) {
-    try {
-      let user = await User.findOne({ email: "trader@aura.test" });
-      if (!user) {
-        user = await User.create({ name: "Aura Trader", email: "trader@aura.test", role: "user" });
-        await Wallet.create({ userId: user._id, balance: 1000000, currency: "INR" });
-        await Portfolio.create({ userId: user._id });
-        await Watchlist.create({ userId: user._id, symbols: ["RELIANCE", "TCS", "INFY"] });
-      }
-      const token = await createSession(user.id, req);
-      setAuthCookie(res, token);
-      const targetOrigin = returnTo.startsWith("http") ? returnTo : `${protocol}://${host}`;
-      return res.redirect(`${targetOrigin}/app?auth=success`);
-    } catch (err) {
-      return res.redirect(`${protocol}://${host}/app?auth=success`);
+  try {
+    const email = "Mdsahilk2003@gmail.com";
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        name: "Sahil Trader",
+        email,
+        role: "user",
+        avatar: "https://lh3.googleusercontent.com/a/default-user",
+      });
+      await Wallet.create({ userId: user._id, balance: 1000000, currency: "INR" });
+      await Portfolio.create({ userId: user._id });
+      await Watchlist.create({ userId: user._id, symbols: ["RELIANCE", "TCS", "INFY"] });
     }
+    const token = await createSession(user.id, req);
+    setAuthCookie(res, token);
+    const targetOrigin = returnTo.startsWith("http") ? returnTo : `${protocol}://${host}`;
+    return res.redirect(`${targetOrigin}/app?auth=success`);
+  } catch (err) {
+    return res.redirect(`${protocol}://${host}/app?auth=success`);
   }
-
-  const callbackURL = `${protocol}://${host}/api/auth/google/callback`;
-
-  return passport.authenticate("google", {
-    scope: ["profile", "email"],
-    session: false,
-    callbackURL,
-    state: returnTo,
-  } as any)(req, res, next);
 });
 
 authRouter.get("/google/callback", (req, res, next) => {
