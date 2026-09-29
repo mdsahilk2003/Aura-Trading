@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useSocket } from "@/providers/socket-provider";
-import { SearchCommand } from "./SearchCommand";
+import { HeaderSearch } from "./HeaderSearch";
 import { NotificationCenter } from "./NotificationCenter";
 import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
 import { portfolioService } from "@/services/portfolio";
@@ -26,10 +26,10 @@ import { Button } from "@/components/ui/button";
 export function Header() {
   const { user, logout } = useAuth();
   const { connected } = useSocket();
-  const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const { data: portfolio } = useQuery({
     queryKey: ["portfolio"],
@@ -55,20 +55,9 @@ export function Header() {
         </div>
       </div>
 
-      {/* Global Command Search Bar Trigger */}
+      {/* Global Live Header Search Bar */}
       <div className="flex-1 max-w-md mx-4 hidden sm:block">
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-1.5 text-xs text-slate-500 hover:border-slate-300 hover:bg-slate-100/60 transition-all shadow-xs"
-        >
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-slate-400" />
-            <span>Search stocks, indices, NSE/BSE...</span>
-          </div>
-          <kbd className="hidden md:inline-block rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-200">
-            ⌘K
-          </kbd>
-        </button>
+        <HeaderSearch />
       </div>
 
       {/* Right Controls */}
@@ -84,7 +73,7 @@ export function Header() {
 
         {/* Mobile Search Icon */}
         <button
-          onClick={() => setSearchOpen(true)}
+          onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
           className="sm:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
           aria-label="Search"
         >
@@ -202,9 +191,6 @@ export function Header() {
         )}
       </div>
 
-      {/* Global Search Dialog Modal */}
-      <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
-
       {/* Notification Center Drawer */}
       <NotificationCenter
         open={notificationsOpen}
@@ -216,6 +202,13 @@ export function Header() {
         open={addMoneyOpen}
         onClose={() => setAddMoneyOpen(false)}
       />
+
+      {/* Mobile Search Bar Container */}
+      {mobileSearchOpen && (
+        <div className="absolute top-full left-0 right-0 border-b border-slate-200 bg-white p-3 sm:hidden shadow-lg animate-in slide-in-from-top-2">
+          <HeaderSearch />
+        </div>
+      )}
     </header>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Search, TrendingUp, TrendingDown, ArrowUpRight, BarChart2, Compass } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -9,8 +10,17 @@ import { PriceChange } from "@/components/ui/price-change";
 import { Input } from "@/components/ui/input";
 import { marketsService } from "@/services/markets";
 
-export default function MarketsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+function MarketsContent() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams?.get("search") || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+
+  useEffect(() => {
+    const s = searchParams?.get("search");
+    if (s !== null && s !== undefined) {
+      setSearchQuery(s);
+    }
+  }, [searchParams]);
 
   const { data: marketsData, isLoading: loadingMarkets } = useQuery({
     queryKey: ["markets", "list"],
@@ -222,5 +232,13 @@ export default function MarketsPage() {
 
       </div>
     </AppShell>
+  );
+}
+
+export default function MarketsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading markets...</div>}>
+      <MarketsContent />
+    </Suspense>
   );
 }

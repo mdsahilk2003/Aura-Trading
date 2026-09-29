@@ -34,7 +34,7 @@ export function AuraLogo({
           dark ? "text-white" : "text-slate-950"
         }`}
       >
-        AURA<span className={dark ? "text-sky-400" : "text-sky-600"}>.</span>
+        AURA
       </span>
     </Link>
   );
