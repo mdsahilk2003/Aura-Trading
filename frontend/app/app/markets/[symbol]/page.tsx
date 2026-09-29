@@ -158,6 +158,8 @@ export default function StockDetailPage() {
   const quote = displayQuote;
   const instrument = symbolData?.instrument;
   const bars = liveBars.length > 0 ? liveBars : historyData?.bars ?? [];
+  const isLiveActive = isSocketConnected || Boolean(quote?.price);
+  const isChartLoading = (loadingHistory || loadingSymbol) && bars.length === 0;
 
   return (
     <AppShell>
@@ -184,17 +186,17 @@ export default function StockDetailPage() {
                 </span>
                 <span
                   className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    isSocketConnected
+                    isLiveActive
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       : "bg-slate-100 text-slate-500"
                   }`}
                 >
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
-                      isSocketConnected ? "bg-emerald-500 animate-ping" : "bg-slate-400"
+                      isLiveActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
                     }`}
                   />
-                  {isSocketConnected ? "LIVE TICKS" : "CONNECTING"}
+                  {isLiveActive ? "LIVE TICKS" : "CONNECTING"}
                 </span>
               </div>
               <p className="text-xs text-slate-500">{instrument?.name || "Company Overview"}</p>
@@ -247,7 +249,7 @@ export default function StockDetailPage() {
                 data={bars}
                 timeframe={timeframe}
                 onTimeframeChange={setTimeframe}
-                isLoading={loadingHistory || loadingSymbol}
+                isLoading={isChartLoading}
               />
             </div>
 

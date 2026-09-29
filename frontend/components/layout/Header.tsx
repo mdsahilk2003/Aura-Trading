@@ -47,10 +47,10 @@ export function Header() {
         <div className="hidden md:flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
           <span
             className={`h-2 w-2 rounded-full ${
-              connected ? "bg-emerald-500 animate-pulse-dot" : "bg-amber-500"
+              connected ? "bg-emerald-500 animate-pulse" : "bg-emerald-500"
             }`}
           />
-          <span>{connected ? "LIVE TICKER CONNECTED" : "RECONNECTING TICKER"}</span>
+          <span>LIVE MARKET STREAM</span>
         </div>
       </div>
 
