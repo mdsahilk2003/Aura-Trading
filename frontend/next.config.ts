@@ -14,8 +14,32 @@ const nextConfig: NextConfig = {
     const cleanTarget = target.replace(/\/api\/?$/, "");
     return [
       {
-        source: "/api/:path*",
-        destination: `${cleanTarget}/api/:path*`,
+        source: "/api/markets/:path*",
+        destination: `${cleanTarget}/api/markets/:path*`,
+      },
+      {
+        source: "/api/orders/:path*",
+        destination: `${cleanTarget}/api/orders/:path*`,
+      },
+      {
+        source: "/api/portfolio/:path*",
+        destination: `${cleanTarget}/api/portfolio/:path*`,
+      },
+      {
+        source: "/api/watchlist/:path*",
+        destination: `${cleanTarget}/api/watchlist/:path*`,
+      },
+      {
+        source: "/api/broker/:path*",
+        destination: `${cleanTarget}/api/broker/:path*`,
+      },
+      {
+        source: "/api/bot/:path*",
+        destination: `${cleanTarget}/api/bot/:path*`,
+      },
+      {
+        source: "/api/analytics/:path*",
+        destination: `${cleanTarget}/api/analytics/:path*`,
       },
       {
         source: "/socket.io/:path*",
