@@ -29,7 +29,6 @@ export function Header() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const { data: portfolio } = useQuery({
     queryKey: ["portfolio"],
@@ -55,10 +54,8 @@ export function Header() {
         </div>
       </div>
 
-      {/* Global Live Header Search Bar */}
-      <div className="flex-1 max-w-md mx-4 hidden sm:block">
-        <HeaderSearch />
-      </div>
+      {/* Inline Header Search Bar */}
+      <HeaderSearch />
 
       {/* Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
@@ -72,13 +69,13 @@ export function Header() {
         </Link>
 
         {/* Mobile Search Icon */}
-        <button
-          onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+        <Link
+          href="/app/markets"
           className="sm:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
           aria-label="Search"
         >
           <Search className="h-5 w-5" />
-        </button>
+        </Link>
 
         {/* Notifications */}
         <button
@@ -202,13 +199,6 @@ export function Header() {
         open={addMoneyOpen}
         onClose={() => setAddMoneyOpen(false)}
       />
-
-      {/* Mobile Search Bar Container */}
-      {mobileSearchOpen && (
-        <div className="absolute top-full left-0 right-0 border-b border-slate-200 bg-white p-3 sm:hidden shadow-lg animate-in slide-in-from-top-2">
-          <HeaderSearch />
-        </div>
-      )}
     </header>
   );
 }

@@ -8,6 +8,7 @@ import { authService } from "@/services/auth";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuraLogo } from "@/components/ui/AuraLogo";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -44,15 +45,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6">
         
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/30">
-              <TrendingUp className="h-6 w-6" />
-            </div>
-            <span className="font-display text-2xl font-extrabold text-white">
-              AURA<span className="text-sky-400">.</span>
-            </span>
-          </Link>
+        <div className="text-center space-y-2 flex flex-col items-center">
+          <AuraLogo dark textSize="text-2xl" iconSize="h-6 w-6" />
           <h1 className="font-display text-2xl font-extrabold text-white tracking-tight">
             Create Your Account
           </h1>
