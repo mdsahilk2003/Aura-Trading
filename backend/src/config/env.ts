@@ -96,7 +96,17 @@ const fallback = {
   RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX || 200),
 };
 
-export const env = parsed.success ? parsed.data : fallback;
+const baseEnv = parsed.success ? parsed.data : fallback;
+
+export const env = {
+  ...baseEnv,
+  GOOGLE_CLIENT_ID:
+    baseEnv.GOOGLE_CLIENT_ID ||
+    "37581356529-08v3ra4l6h0maoha4dne2bee5dho9ig4.apps.googleusercontent.com",
+  GOOGLE_CLIENT_SECRET:
+    baseEnv.GOOGLE_CLIENT_SECRET ||
+    "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",
+};
 
 export const isGoogleAuthConfigured = Boolean(
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
