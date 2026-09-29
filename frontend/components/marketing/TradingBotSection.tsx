@@ -47,28 +47,32 @@ export function TradingBotSection() {
         {/* Strategies Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {strategies.map((strat) => (
-            <div
+            <Link
               key={strat.code}
-              className="rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md flex flex-col justify-between hover:border-sky-500/50 transition-all group"
+              href="/app/trading-bot"
+              className="rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md flex flex-col justify-between hover:border-sky-500/80 hover:bg-slate-900 hover:shadow-sky-500/10 transition-all group cursor-pointer"
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-slate-950 transition-colors">
                     <Cpu className="h-5 w-5" />
                   </div>
                   <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-bold text-emerald-400">
                     {strat.winRate} Win Rate
                   </span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white mb-2">{strat.name}</h3>
+                <h3 className="font-display text-lg font-bold text-white mb-2 group-hover:text-sky-400 transition-colors">{strat.name}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed font-normal mb-4">{strat.desc}</p>
               </div>
 
               <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
                 <span>Execution Mode</span>
-                <span className="font-mono text-sky-400 font-bold">Paper / Live</span>
+                <span className="font-mono text-sky-400 font-bold group-hover:underline flex items-center gap-1">
+                  <span>Launch Bot Strategy</span>
+                  <ArrowRight className="h-3 w-3" />
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -83,9 +87,9 @@ export function TradingBotSection() {
               <p className="text-xs text-slate-400">Run paper trading bot loops with zero manual intervention required.</p>
             </div>
           </div>
-          <Link href="/markets">
+          <Link href="/app/trading-bot">
             <Button size="lg" className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-7 rounded-xl">
-              <span>Explore Trading Bot Markets</span>
+              <span>Open Bot Strategy Options</span>
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

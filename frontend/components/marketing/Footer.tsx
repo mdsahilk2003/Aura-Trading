@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import { AuraLogo } from "@/components/ui/AuraLogo";
 
 export function Footer() {
   return (
@@ -11,14 +11,7 @@ export function Footer() {
           
           {/* Brand */}
           <div className="space-y-3">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-950 text-sky-400">
-                <TrendingUp className="h-4 w-4" />
-              </div>
-              <span className="font-display text-lg font-bold text-slate-900">
-                AURA<span className="text-sky-600">.</span>
-              </span>
-            </Link>
+            <AuraLogo />
             <p className="text-slate-500 text-xs leading-relaxed">
               Production-grade API-driven commercial trading platform for modern fintech workflows.
             </p>
@@ -30,8 +23,8 @@ export function Footer() {
             <ul className="space-y-2">
               <li><Link href="/markets" className="hover:text-slate-900">Live Markets</Link></li>
               <li><Link href="/markets" className="hover:text-slate-900">Paper Trading</Link></li>
-              <li><Link href="/markets" className="hover:text-slate-900">Trading Bot</Link></li>
-              <li><Link href="/markets" className="hover:text-slate-900">Analytics</Link></li>
+              <li><Link href="/app/trading-bot" className="hover:text-slate-900">Trading Bot</Link></li>
+              <li><Link href="/app/analytics" className="hover:text-slate-900">Analytics</Link></li>
             </ul>
           </div>
 

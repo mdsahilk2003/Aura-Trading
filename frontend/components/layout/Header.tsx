@@ -20,6 +20,7 @@ import { SearchCommand } from "./SearchCommand";
 import { NotificationCenter } from "./NotificationCenter";
 import { AddMoneyModal } from "@/components/funds/AddMoneyModal";
 import { portfolioService } from "@/services/portfolio";
+import { AuraLogo } from "@/components/ui/AuraLogo";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
@@ -41,14 +42,7 @@ export function Header() {
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-[var(--color-line)] bg-white/90 px-4 backdrop-blur-md sm:px-6">
       {/* Brand & Market Status */}
       <div className="flex items-center gap-4">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sky-400 shadow-md transition-transform group-hover:scale-105">
-            <TrendingUp className="h-5 w-5" />
-          </div>
-          <span className="font-display text-xl font-bold tracking-tight text-slate-900">
-            AURA<span className="text-sky-600">.</span>
-          </span>
-        </Link>
+        <AuraLogo />
 
         {/* Live Market Socket Status Pill */}
         <div className="hidden md:flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
