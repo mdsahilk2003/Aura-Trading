@@ -21,7 +21,10 @@ const SocketContext = createContext<SocketContextValue>({
   connected: false,
 });
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000";
+const WS_URL =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://65.1.222.7";
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);

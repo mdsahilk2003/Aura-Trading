@@ -8,6 +8,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { CandlestickChart } from "@/components/charts/CandlestickChart";
 import { OrderPanel } from "@/components/orders/OrderPanel";
 import { PriceChange } from "@/components/ui/price-change";
+import { RealtimePrice } from "@/components/ui/realtime-price";
 import { PnlBadge } from "@/components/ui/pnl-badge";
 import { marketsService } from "@/services/markets";
 import { watchlistService } from "@/services/watchlist";
@@ -204,10 +205,10 @@ export default function StockDetailPage() {
           <div className="flex items-center gap-4">
             {quote && (
               <div className="text-right">
-                <p className="font-mono-num font-extrabold text-xl text-slate-900 transition-colors duration-200">
-                  ₹{quote.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <PriceChange change={quote.change} changePercent={quote.changePercent} />
+                <RealtimePrice price={quote.price} textSize="text-2xl" />
+                <div className="mt-0.5">
+                  <PriceChange change={quote.change} changePercent={quote.changePercent} />
+                </div>
               </div>
             )}
 

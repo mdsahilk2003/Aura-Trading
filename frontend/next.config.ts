@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const api = process.env.NEXT_PUBLIC_API_URL || "http://65.1.222.7";
     return [
       {
         source: "/backend/:path*",
