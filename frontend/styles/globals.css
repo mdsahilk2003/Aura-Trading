@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --color-ink: #080e1a;
@@ -57,7 +57,7 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .font-mono-num {
