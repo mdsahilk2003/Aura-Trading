@@ -7,6 +7,8 @@ import {
   setAuthCookie,
   getMe,
   logout,
+  loginUser,
+  registerUser,
   testLogin,
   isGoogleAuthConfigured,
 } from "../services/authService";
@@ -87,13 +89,15 @@ authRouter.get("/google/callback", (req, res, next) => {
 
 authRouter.get("/me", requireAuth, asyncHandler(getMe));
 authRouter.post("/logout", requireAuth, asyncHandler(logout));
+authRouter.post("/login", asyncHandler(loginUser));
+authRouter.post("/register", asyncHandler(registerUser));
 authRouter.post("/test-login", asyncHandler(testLogin));
 
 authRouter.get("/providers", (_req, res) => {
   res.json(
     success({
       google: isGoogleAuthConfigured,
-      emailPassword: false,
+      emailPassword: true,
       testAuth: true,
     })
   );

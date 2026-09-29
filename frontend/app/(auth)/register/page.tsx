@@ -19,17 +19,19 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleRegister = async () => {
-    if (!email || !name) {
-      setErrorMsg("Please enter your name and email address to create an account.");
+  const handleRegister = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!email || !email.includes("@")) {
+      setErrorMsg("Please enter a valid email address to create an account.");
       return;
     }
     setLoading(true);
     setErrorMsg("");
     try {
-      await authService.testLogin({
+      await authService.register({
         email: email.trim(),
-        name: name.trim(),
+        name: name ? name.trim() : email.split("@")[0],
+        password: password ? password.trim() : undefined,
       });
       await refresh();
       router.push("/app");
@@ -98,7 +100,7 @@ export default function RegisterPage() {
             <div className="h-[1px] flex-1 bg-white/10" />
           </div>
 
-          <div className="space-y-3">
+          <form onSubmit={handleRegister} className="space-y-3">
             <div className="space-y-1">
               <label className="text-[11px] font-semibold text-slate-300">Full Name</label>
               <Input
@@ -117,6 +119,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-slate-950/60 border-white/10 text-white placeholder:text-slate-500 text-xs h-10"
+                required
               />
             </div>
             <div className="space-y-1">
@@ -131,9 +134,8 @@ export default function RegisterPage() {
             </div>
 
             <Button
-              type="button"
+              type="submit"
               disabled={loading}
-              onClick={handleRegister}
               className="w-full h-11 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20"
             >
               {loading ? (
@@ -145,7 +147,7 @@ export default function RegisterPage() {
                 </div>
               )}
             </Button>
-          </div>
+          </form>
 
           <div className="text-center pt-2">
             <p className="text-xs text-slate-400">

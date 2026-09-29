@@ -23,17 +23,18 @@ function LoginForm() {
   const oauthErr = searchParams?.get("error");
   const oauthReason = searchParams?.get("reason");
 
-  const handleTestLogin = async () => {
-    if (!email) {
-      setErrorMsg("Please enter your email address below to sign in.");
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!email || !email.includes("@")) {
+      setErrorMsg("Please enter a valid email address to sign in.");
       return;
     }
     setLoading(true);
     setErrorMsg("");
     try {
-      await authService.testLogin({
+      await authService.login({
         email: email.trim(),
-        name: email.split("@")[0],
+        password: password ? password.trim() : undefined,
       });
       await refresh();
       router.push(nextUrl);
@@ -113,7 +114,7 @@ function LoginForm() {
         </div>
 
         {/* Email / Password Inputs */}
-        <div className="space-y-3">
+        <form onSubmit={handleLogin} className="space-y-3">
           <div className="space-y-1">
             <label className="text-[11px] font-semibold text-slate-300">Email Address</label>
             <Input
@@ -122,6 +123,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-slate-950/60 border-white/10 text-white placeholder:text-slate-500 text-xs h-10"
+              required
             />
           </div>
           <div className="space-y-1">
@@ -136,9 +138,8 @@ function LoginForm() {
           </div>
 
           <Button
-            type="button"
+            type="submit"
             disabled={loading}
-            onClick={handleTestLogin}
             className="w-full h-11 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20"
           >
             {loading ? (
@@ -150,7 +151,7 @@ function LoginForm() {
               </div>
             )}
           </Button>
-        </div>
+        </form>
 
         <div className="text-center pt-2">
           <p className="text-xs text-slate-400">

@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import type { Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import { DEFAULT_PAPER_FUNDS } from "@aura/shared";
 import { env, isGoogleAuthConfigured } from "../config/env";
 import { User } from "../models/User";
@@ -172,6 +173,108 @@ export async function logout(req: AuthRequest, res: Response) {
   return res.json(success({ ok: true }));
 }
 
+/** Authenticates or creates user dynamically with their email address */
+export async function loginUser(req: Request, res: Response) {
+  const { email, password } = req.body || {};
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json(failure("Valid email address is required", ERROR_CODES.VALIDATION_ERROR));
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  await connectDatabase();
+
+  let user = await User.findOne({ email: cleanEmail });
+
+  if (!user) {
+    const name = cleanEmail.split("@")[0] || "Aura Trader";
+    const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
+    user = await User.create({
+      name,
+      email: cleanEmail,
+      passwordHash,
+      role: "user",
+    });
+    await Wallet.create({ userId: user._id, balance: 0, currency: "INR" });
+    await Portfolio.create({ userId: user._id });
+    await Watchlist.create({
+      userId: user._id,
+      symbols: ["RELIANCE", "TCS", "INFY"],
+    });
+  } else if (password && user.passwordHash) {
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json(failure("Incorrect password", ERROR_CODES.UNAUTHORIZED));
+    }
+  } else if (password && !user.passwordHash) {
+    user.passwordHash = await bcrypt.hash(password, 10);
+    await user.save();
+  }
+
+  const token = await createSession(user.id, req);
+  setAuthCookie(res, token);
+
+  return res.json(
+    success({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+    })
+  );
+}
+
+/** Registers a new user with email, name, and optional password */
+export async function registerUser(req: Request, res: Response) {
+  const { name, email, password } = req.body || {};
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json(failure("Valid email address is required", ERROR_CODES.VALIDATION_ERROR));
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const userName = (typeof name === "string" && name.trim()) ? name.trim() : cleanEmail.split("@")[0];
+
+  await connectDatabase();
+
+  let user = await User.findOne({ email: cleanEmail });
+
+  if (user) {
+    if (password && user.passwordHash) {
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!isMatch) {
+        return res.status(400).json(failure("Email already registered with another password", ERROR_CODES.VALIDATION_ERROR));
+      }
+    }
+  } else {
+    const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
+    user = await User.create({
+      name: userName,
+      email: cleanEmail,
+      passwordHash,
+      role: "user",
+    });
+    await Wallet.create({ userId: user._id, balance: 0, currency: "INR" });
+    await Portfolio.create({ userId: user._id });
+    await Watchlist.create({
+      userId: user._id,
+      symbols: ["RELIANCE", "TCS", "INFY"],
+    });
+  }
+
+  const token = await createSession(user.id, req);
+  setAuthCookie(res, token);
+
+  return res.json(
+    success({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+    })
+  );
+}
+
 /** Creates a session for 1-click demo/trader login */
 export async function testLogin(req: Request, res: Response) {
   const email = (req.body?.email as string) || "trader@aura.test";
@@ -203,3 +306,4 @@ export async function testLogin(req: Request, res: Response) {
 }
 
 export { isGoogleAuthConfigured };
+

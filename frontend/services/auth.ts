@@ -15,6 +15,18 @@ export const authService = {
   logout: () =>
     apiFetch<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
 
+  login: (payload: { email: string; password?: string }) =>
+    apiFetch<UserDto>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  register: (payload: { name?: string; email: string; password?: string }) =>
+    apiFetch<UserDto>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
   testLogin: (payload?: { email?: string; name?: string; role?: string }) =>
     apiFetch<{ id: string; name: string; email: string; role: string }>(
       "/api/auth/test-login",
