@@ -6,7 +6,6 @@ export async function connectDatabase(uri = env.MONGODB_URI): Promise<typeof mon
     return mongoose;
   }
   mongoose.set("strictQuery", true);
-  mongoose.set("bufferCommands", false);
 
   const targetUri =
     uri ||

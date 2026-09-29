@@ -139,8 +139,9 @@ export function errorMiddleware(
       .status(err.statusCode)
       .json(failure(err.message, err.code, err.details));
   }
-  console.error(err);
+  console.error("API Middleware Error:", err);
+  const errMsg = err instanceof Error ? err.message : "Internal server error";
   return res
     .status(500)
-    .json(failure("Internal server error", ERROR_CODES.INTERNAL_ERROR));
+    .json(failure(errMsg, ERROR_CODES.INTERNAL_ERROR));
 }
