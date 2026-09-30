@@ -8,6 +8,10 @@ export const orderTypeSchema = z.enum([
   "STOP_LOSS_LIMIT",
 ]);
 export const chartTimeframeSchema = z.enum([
+  "1m",
+  "3m",
+  "5m",
+  "15m",
   "1D",
   "1W",
   "1M",

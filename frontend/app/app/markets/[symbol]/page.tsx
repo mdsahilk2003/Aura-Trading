@@ -32,23 +32,22 @@ export default function StockDetailPage() {
   const params = useParams();
   const symbol = String(params?.symbol || "RELIANCE").toUpperCase();
   const queryClient = useQueryClient();
-  const [timeframe, setTimeframe] = useState<ChartTimeframe>("1D");
+  const [timeframe, setTimeframe] = useState<ChartTimeframe>("1m");
 
   const [liveQuote, setLiveQuote] = useState<QuoteDto | null>(null);
-  const [liveBars, setLiveBars] = useState<OhlcvBar[]>([]);
 
   // Fetch Instrument Quote & Metadata (1.5s live polling fallback)
   const { data: symbolData, isLoading: loadingSymbol } = useQuery({
     queryKey: ["markets", "symbol", symbol],
     queryFn: () => marketsService.getSymbol(symbol),
-    refetchInterval: 1500,
+    refetchInterval: 2500,
   });
 
-  // Fetch Historical OHLCV Bars (3s live bar sync)
+  // Fetch Historical OHLCV Bars (cached per timeframe to avoid overwriting live simulation)
   const { data: historyData, isLoading: loadingHistory } = useQuery({
     queryKey: ["markets", "history", symbol, timeframe],
     queryFn: () => marketsService.history(symbol, timeframe),
-    refetchInterval: 3000,
+    staleTime: 60_000,
   });
 
   // Fetch User's Active Positions & Holdings
@@ -89,35 +88,11 @@ export default function StockDetailPage() {
     }
   }, [symbolData]);
 
-  useEffect(() => {
-    if (historyData?.bars) {
-      setLiveBars(historyData.bars);
-    }
-  }, [historyData]);
-
-  // Real-Time Socket Tick Handler
+  // Real-Time Socket Tick Handler (updates ticker price if active)
   const handleTick = useCallback((tick: QuoteDto) => {
     if (tick.symbol.toUpperCase() !== symbol.toUpperCase()) return;
     if (!tick.price || tick.price <= 0) return;
-    setLiveQuote(tick);
-
-    setLiveBars((prevBars) => {
-      if (!prevBars.length) return prevBars;
-      const updated = [...prevBars];
-      const lastIdx = updated.length - 1;
-      const lastBar = { ...updated[lastIdx] };
-
-      const price = tick.price;
-      lastBar.close = price;
-      // Filter out extreme tick anomalies (>10% off bar open) from distorting candle high/low
-      if (Math.abs(price - lastBar.open) / lastBar.open < 0.1) {
-        lastBar.high = Math.max(lastBar.high, price);
-        lastBar.low = Math.min(lastBar.low, price);
-      }
-      
-      updated[lastIdx] = lastBar;
-      return updated;
-    });
+    setLiveQuote((prev) => (prev ? prev : tick));
   }, [symbol]);
 
   // Connect WebSocket stream for symbol
@@ -157,7 +132,7 @@ export default function StockDetailPage() {
 
   const quote = displayQuote;
   const instrument = symbolData?.instrument;
-  const bars = liveBars.length > 0 ? liveBars : historyData?.bars ?? [];
+  const bars = historyData?.bars ?? [];
   const isLiveActive = isSocketConnected || Boolean(quote?.price);
   const isChartLoading = (loadingHistory || loadingSymbol) && bars.length === 0;
 
@@ -242,14 +217,29 @@ export default function StockDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Candlestick Chart & Key Metrics */}
           <div className="lg:col-span-8 space-y-6">
-            {/* Candlestick Interactive Component */}
-            <div className="h-[460px] w-full">
+            {/* Candlestick & Graph Interactive Component */}
+            <div className="h-[520px] sm:h-[560px] w-full">
               <CandlestickChart
                 symbol={symbol}
-                data={bars}
+                initialBars={bars}
                 timeframe={timeframe}
                 onTimeframeChange={setTimeframe}
                 isLoading={isChartLoading}
+                onPriceUpdate={(simQuote) => {
+                  setLiveQuote((prev) => ({
+                    symbol,
+                    price: simQuote.price,
+                    change: simQuote.change,
+                    changePercent: simQuote.changePercent,
+                    open: simQuote.open,
+                    high: simQuote.high,
+                    low: simQuote.low,
+                    previousClose: prev?.previousClose ?? simQuote.open,
+                    volume: simQuote.volume,
+                    timestamp: new Date().toISOString(),
+                    mode: prev?.mode || "DEMO",
+                  }));
+                }}
               />
             </div>
 

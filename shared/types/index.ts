@@ -11,7 +11,18 @@ export type OrderStatus =
   | "REJECTED"
   | "FAILED";
 
-export type ChartTimeframe = "1D" | "1W" | "1M" | "3M" | "6M" | "1Y" | "5Y";
+export type ChartTimeframe =
+  | "1m"
+  | "3m"
+  | "5m"
+  | "15m"
+  | "1D"
+  | "1W"
+  | "1M"
+  | "3M"
+  | "6M"
+  | "1Y"
+  | "5Y";
 
 export type DataMode = "LIVE" | "DEMO" | "PAPER";
 

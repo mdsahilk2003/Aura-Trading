@@ -124,6 +124,14 @@ export function timeframeConfig(timeframe: ChartTimeframe): {
   intervalMs: number;
 } {
   switch (timeframe) {
+    case "1m":
+      return { bars: 60, intervalMs: 1 * 60 * 1000 };
+    case "3m":
+      return { bars: 60, intervalMs: 3 * 60 * 1000 };
+    case "5m":
+      return { bars: 60, intervalMs: 5 * 60 * 1000 };
+    case "15m":
+      return { bars: 50, intervalMs: 15 * 60 * 1000 };
     case "1D":
       return { bars: 78, intervalMs: 5 * 60 * 1000 };
     case "1W":
@@ -139,7 +147,7 @@ export function timeframeConfig(timeframe: ChartTimeframe): {
     case "5Y":
       return { bars: 260, intervalMs: 5 * 24 * 60 * 60 * 1000 };
     default:
-      return { bars: 78, intervalMs: 5 * 60 * 1000 };
+      return { bars: 60, intervalMs: 1 * 60 * 1000 };
   }
 }
 

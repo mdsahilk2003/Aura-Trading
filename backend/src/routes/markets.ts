@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   chartTimeframeSchema,
   marketSearchSchema,
+  type ChartTimeframe,
 } from "@aura/shared";
 import { asyncHandler, optionalAuth } from "../middleware/auth";
 import { validateQuery } from "../middleware/validate";
@@ -124,7 +125,7 @@ marketsRouter.get(
   validateQuery(historyQuery),
   asyncHandler(async (req, res) => {
     const { timeframe } = (req as typeof req & {
-      validatedQuery: { timeframe: "1D" | "1W" | "1M" | "3M" | "6M" | "1Y" | "5Y" };
+      validatedQuery: { timeframe: ChartTimeframe };
     }).validatedQuery;
     const data = await appContext.marketData.getHistoricalData(
       String(req.params.symbol),
